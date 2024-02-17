@@ -5,6 +5,8 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm/schema"
 
+	"schedule/model/league"
+
 	"os"
 )
 
@@ -23,6 +25,8 @@ func Init() {
 	if err != nil {
 		panic("DB Connection Error")
 	}
+
+	db.AutoMigrate(&league.Country{}, &league.Competition{})
 }
 
 func Db() *gorm.DB {
