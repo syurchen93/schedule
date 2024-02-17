@@ -2,12 +2,22 @@ package main
 
 import (
 	"net/http"
+	"os"
 	"schedule/db"
-	
+
 	"github.com/labstack/echo/v4"
+
+	"fmt"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	err := godotenv.Load(".env")
+	if err != nil{
+	 panic(fmt.Sprintf("Error loading .env file: %s", err))
+	}
+
 	e := echo.New()
 	e.GET("/", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]interface{}{
@@ -25,5 +35,7 @@ func main() {
 
 	dbGorm.Ping()
 	
-	e.Logger.Fatal(e.Start(":8069"))
+	e.Logger.Fatal(e.Start(
+		fmt.Sprintf(":%s", os.Getenv("WEB_SERVER_PORT")),
+	))
 }
