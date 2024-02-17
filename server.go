@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"schedule/db"
 	
 	"github.com/labstack/echo/v4"
 )
@@ -9,7 +10,20 @@ import (
 func main() {
 	e := echo.New()
 	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!")
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"hello": "world",
+		})
 	})
-	e.Logger.Fatal(e.Start(":1323"))
+
+	db.Init()
+	gorm := db.Db()
+
+	dbGorm, err := gorm.DB()
+	if err != nil {
+		panic(err)
+	}
+
+	dbGorm.Ping()
+	
+	e.Logger.Fatal(e.Start(":8080"))
 }
