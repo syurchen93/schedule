@@ -25,7 +25,10 @@ func Init() {
 		panic("DB Connection Error")
 	}
 
-	db.AutoMigrate(&league.Country{}, &league.Competition{})
+	err = db.AutoMigrate(&league.Country{}, &league.Competition{})
+	if err != nil {
+		panic("DB Migration Error")
+	}
 }
 
 func Db() *gorm.DB {

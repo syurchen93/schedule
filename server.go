@@ -26,7 +26,10 @@ func main() {
 		panic(err)
 	}
 
-	dbGorm.Ping()
+	err = dbGorm.Ping()
+	if err != nil {
+		panic(err)
+	}
 
 	e.Logger.Fatal(e.Start(
 		fmt.Sprintf(":%s", util.GetEnv("WEB_SERVER_PORT")),
