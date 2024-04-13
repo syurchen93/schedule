@@ -1,9 +1,9 @@
 package util
 
 import (
-	"os"
-	"github.com/joho/godotenv"
 	"fmt"
+	"github.com/joho/godotenv"
+	"os"
 )
 
 var isLoaded bool = false
