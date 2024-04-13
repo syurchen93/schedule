@@ -1,13 +1,12 @@
 package db
 
 import (
-	"gorm.io/gorm"
 	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 
 	"schedule/model/league"
-
-	"os"
+	"schedule/util"
 )
 
 var db *gorm.DB
@@ -15,7 +14,7 @@ var err error
 
 func Init() {
 
-	dsn := os.Getenv("DB_DSN")
+	dsn := util.GetEnv("DB_DSN")
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: true,
@@ -30,5 +29,5 @@ func Init() {
 }
 
 func Db() *gorm.DB {
-	return db 
+	return db
 }
