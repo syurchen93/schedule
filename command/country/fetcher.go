@@ -9,9 +9,8 @@ import (
 	"gorm.io/gorm"
 
 	"schedule/db"
-	model "schedule/model/league"
 	"schedule/util"
-	transformer "schedule/util/transformer/fetcher"
+	"schedule/util/transformer"
 )
 
 var apiClient *client.Client
@@ -33,13 +32,13 @@ func fetchAndPersistCountries() {
 
 	countryResponses, err := apiClient.DoRequest(getCountriesRequest)
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
 	}
-	dbGorm.Delete(model.Country{}, "id > 0")
 
 	for _, countryResponse := range countryResponses {
 		country := transformer.CreateCountryFromResponse(countryResponse.(leagues.Country))
-		result := db.Db().Create(&country)
+		//result := db.Db().Create(&country)
+		result := dbGorm.Where("name = ?", country.Name).Assign(country).FirstOrCreate(&country)
 		if result.Error != nil {
 			errorCount++
 		}
