@@ -14,5 +14,5 @@ type Competition struct {
 	Name      string  `gorm:"type:varchar(256); not null"`
 	Type      string  `gorm:"type:enum('league', 'cup'); not null"`
 	Logo      string  `gorm:"type:varchar(256); not null"`
-	Enabled  bool    `gorm:"type:boolean; not null; default:false"`
+	Enabled   bool    `gorm:"type:boolean; not null; default:false"`
 }
