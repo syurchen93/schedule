@@ -4,6 +4,7 @@ import (
 	"schedule/model"
 	leaguem "schedule/model/league"
 
+	"github.com/syurchen93/api-football-client/response/fixtures"
 	"github.com/syurchen93/api-football-client/response/leagues"
 	"github.com/syurchen93/api-football-client/response/standings"
 	"github.com/syurchen93/api-football-client/response/team"
@@ -68,4 +69,21 @@ func CreateStandingFromResponse(response standings.Ranking, competitionID uint) 
 		GoalsAgainst:  response.All.Goals.Against,
 		UpdatedApi:    response.Updated,
 	}
+}
+
+func CreateFixtureFromResponse(response fixtures.Fixture) leaguem.Fixture {
+	fixtureModel := leaguem.Fixture{
+		ID:            response.Fixture.ID,
+		CompetitionID: uint(response.League.ID),
+		HomeTeamID:    uint(response.Teams.Home.ID),
+		AwayTeamID:    uint(response.Teams.Away.ID),
+		Status:        response.Fixture.Status.Value,
+		GoalsHome:     response.Goals.Home,
+		GoalsAway:     response.Goals.Away,
+		PenaltyHome:   response.Score.Penalty.Home,
+		PenaltyAway:   response.Score.Penalty.Away,
+		Date:          response.Fixture.Date,
+	}
+
+	return fixtureModel
 }
