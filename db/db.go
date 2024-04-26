@@ -26,7 +26,7 @@ func Init() {
 		panic("DB Connection Error")
 	}
 
-	err = db.AutoMigrate(&league.Country{}, &league.Competition{}, &model.Team{})
+	err = db.AutoMigrate(&league.Country{}, &league.Competition{}, &model.Team{}, &league.Standing{})
 	if err != nil {
 		panic("DB Migration Error")
 	}

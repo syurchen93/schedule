@@ -5,6 +5,7 @@ import (
 	leaguem "schedule/model/league"
 
 	"github.com/syurchen93/api-football-client/response/leagues"
+	"github.com/syurchen93/api-football-client/response/standings"
 	"github.com/syurchen93/api-football-client/response/team"
 )
 
@@ -45,5 +46,26 @@ func CreateTeamFromResponse(response team.Team, competitionID uint) model.Team {
 		Code:    response.Code,
 		Country: response.Country,
 		Logo:    response.Logo,
+	}
+}
+
+func CreateStandingFromResponse(response standings.Ranking, competitionID uint) leaguem.Standing {
+	return leaguem.Standing{
+		Rank:          response.Rank,
+		TeamID:        uint(response.Team.ID),
+		CompetitionID: competitionID,
+		Points:        response.Points,
+		GoalsDiff:     response.GoalsDiff,
+		Group:         response.Group,
+		Form:          response.Form,
+		Status:        response.Status,
+		Description:   response.Description,
+		Played:        response.All.Played,
+		Won:           response.All.Win,
+		Drawn:         response.All.Draw,
+		Lost:          response.All.Lose,
+		GoalsFor:      response.All.Goals.For,
+		GoalsAgainst:  response.All.Goals.Against,
+		UpdatedApi:    response.Updated,
 	}
 }
