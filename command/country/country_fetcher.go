@@ -7,7 +7,10 @@ import (
 
 	"fmt"
 	"gorm.io/gorm"
+	"log"
+	"os"
 
+	"github.com/urfave/cli/v2"
 	"schedule/db"
 	"schedule/util"
 	"schedule/util/transformer"
@@ -17,11 +20,22 @@ var apiClient *client.Client
 var dbGorm *gorm.DB
 
 func main() {
-	apiClient = client.NewClient(util.GetEnv("API_FOOTBALL_KEY"))
-	db.Init()
-	dbGorm = db.Db()
+	app := &cli.App{
+		Name:  "fetch-countries",
+		Usage: "Fetch and persist countries from API Football",
+		Action: func(*cli.Context) error {
+			apiClient = client.NewClient(util.GetEnv("API_FOOTBALL_KEY"))
+			db.Init()
+			dbGorm = db.Db()
 
-	fetchAndPersistCountries()
+			fetchAndPersistCountries()
+			return nil
+		},
+	}
+
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func fetchAndPersistCountries() {
