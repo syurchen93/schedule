@@ -48,6 +48,14 @@ func fetchAndPersistCompetitions() {
 
 	fmt.Printf("Countries Enabled: %d\n", len(countries))
 
+	// Update World to be the first country to be processed to not overwrite others
+	for i, country := range countries {
+		if country.Name == "World" {
+			countries[0], countries[i] = countries[i], countries[0]
+			break
+		}
+	}
+
 	for _, country := range countries {
 		getCompetitionsRequest := league.League{CountryCode: country.Code}
 
@@ -58,7 +66,7 @@ func fetchAndPersistCompetitions() {
 
 		for _, competitionResponse := range competitionResponses {
 			competition := transformer.CreateCompetitionFromResponse(competitionResponse.(leagues.LeagueData), country.ID)
-			result := dbGorm.Where(model.Competition{ID: competition.ID}).Assign(competition).FirstOrCreate(&competition)
+			result := dbGorm.Where("id = ?", competition.ID).Assign(competition).FirstOrCreate(&competition)
 			if result.Error != nil {
 				errorCount++
 			}
