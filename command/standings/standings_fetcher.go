@@ -28,7 +28,7 @@ func main() {
 		Name:  "fetch-standings",
 		Usage: "Fetch and persist standings from API Football. Creating teams on the fly if they don't exist.",
 		Action: func(*cli.Context) error {
-			apiClient = client.NewClient(util.GetEnv("API_FOOTBALL_KEY"))
+			apiClient = client.NewClient(util.GetEnv("API_FOOTBALL_KEY"), client.RateLimiterSettings{})
 			db.Init()
 			dbGorm = db.Db()
 

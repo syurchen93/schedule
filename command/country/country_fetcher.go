@@ -24,7 +24,7 @@ func main() {
 		Name:  "fetch-countries",
 		Usage: "Fetch and persist countries from API Football",
 		Action: func(*cli.Context) error {
-			apiClient = client.NewClient(util.GetEnv("API_FOOTBALL_KEY"))
+			apiClient = client.NewClient(util.GetEnv("API_FOOTBALL_KEY"), client.RateLimiterSettings{})
 			db.Init()
 			dbGorm = db.Db()
 
