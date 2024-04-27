@@ -48,7 +48,7 @@ func fetchAndPersistStandings() {
 	var standingsCreatedCount int
 	var competitionCount int
 	var competitions []model.Competition
-	dbGorm.Where("enabled = ?", true).Find(&competitions)
+	dbGorm.Where("enabled = ? and no_standings = 0", true).Find(&competitions)
 
 	for _, competition := range competitions {
 		standingsRequest := standings.Standings{
@@ -61,9 +61,14 @@ func fetchAndPersistStandings() {
 			panic(err)
 		}
 
-		league := standingResponse[0].(response.Standings).League
+		var rankings []response.Ranking
+		if len(standingResponse) > 0 {
+			for _, rankingSlice := range standingResponse[0].(response.Standings).League.Standings {
+				rankings = append(rankings, rankingSlice...)
+			}
+		}
 
-		for _, ranking := range league.Standings[0] {
+		for _, ranking := range rankings {
 			team := transformer.CreateTeamFromResponse(ranking.Team, competition.ID)
 			result := dbGorm.Where("id = ?", team.ID).Assign(team).FirstOrCreate(&team)
 			if result.Error != nil {
