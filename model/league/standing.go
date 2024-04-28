@@ -24,6 +24,7 @@ type Standing struct {
 	Lost          int         `gorm:"type:int"`
 	GoalsFor      int         `gorm:"type:int"`
 	GoalsAgainst  int         `gorm:"type:int"`
+	Season        int         `gorm:"type:int"`
 	UpdatedApi    time.Time   `gorm:"type:timestamp"`
 	UpdatedAt     time.Time   `gorm:"type:timestamp"`
 }

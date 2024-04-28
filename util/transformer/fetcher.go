@@ -58,7 +58,7 @@ func CreateTeamFromFixtureResponse(response fixtures.Team) model.Team {
 	}
 }
 
-func CreateStandingFromResponse(response standings.Ranking, competitionID uint) leaguem.Standing {
+func CreateStandingFromResponse(response standings.Ranking, competitionID uint, season int) leaguem.Standing {
 	return leaguem.Standing{
 		Rank:          response.Rank,
 		TeamID:        uint(response.Team.ID),
@@ -75,6 +75,7 @@ func CreateStandingFromResponse(response standings.Ranking, competitionID uint) 
 		Lost:          response.All.Lose,
 		GoalsFor:      response.All.Goals.For,
 		GoalsAgainst:  response.All.Goals.Against,
+		Season:        season,
 		UpdatedApi:    response.Updated,
 	}
 }

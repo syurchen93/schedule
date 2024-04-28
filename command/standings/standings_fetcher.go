@@ -77,7 +77,7 @@ func fetchAndPersistStandings() {
 			if result.RowsAffected > 0 {
 				teamCreatedCount++
 			}
-			standing := transformer.CreateStandingFromResponse(ranking, competition.ID)
+			standing := transformer.CreateStandingFromResponse(ranking, competition.ID, int(competition.CurrentSeason))
 			result = dbGorm.Where("team_id = ? AND competition_id = ?", standing.TeamID, standing.CompetitionID).Assign(standing).FirstOrCreate(&standing)
 			if result.Error != nil {
 				errorCount++
