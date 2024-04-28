@@ -40,13 +40,21 @@ func CreateCompetitionFromResponse(response leagues.LeagueData, countryID uint) 
 	}
 }
 
-func CreateTeamFromResponse(response team.Team, competitionID uint) model.Team {
+func CreateTeamFromResponse(response team.Team) model.Team {
 	return model.Team{
 		ID:      response.ID,
 		Name:    response.Name,
-		Code:    response.Code,
-		Country: response.Country,
+		Code:    &response.Code,
+		Country: &response.Country,
 		Logo:    response.Logo,
+	}
+}
+
+func CreateTeamFromFixtureResponse(response fixtures.Team) model.Team {
+	return model.Team{
+		ID:   response.ID,
+		Name: response.Name,
+		Logo: response.Logo,
 	}
 }
 

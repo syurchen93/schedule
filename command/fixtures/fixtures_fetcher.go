@@ -81,6 +81,7 @@ func fetchAndPersistFixtures(daysBefore, daysAfter int) {
 		}
 
 		for _, fixtureResponse := range fixturesResponse {
+			persistFixtureTeams(fixtureResponse.(response.Fixture))
 			fixture := transformer.CreateFixtureFromResponse(fixtureResponse.(response.Fixture))
 			result := dbGorm.Where("id = ?", fixture.ID).Assign(fixture).FirstOrCreate(&fixture)
 			if result.Error != nil {
@@ -100,4 +101,14 @@ func fetchAndPersistFixtures(daysBefore, daysAfter int) {
 		competitionCount,
 		errorCount,
 	)
+}
+
+func persistFixtureTeams(fixture response.Fixture) {
+	persistTeam(fixture.Teams.Home)
+	persistTeam(fixture.Teams.Away)
+}
+
+func persistTeam(teamResponse response.Team) {
+	team := transformer.CreateTeamFromFixtureResponse(teamResponse)
+	dbGorm.Where("id = ?", team.ID).Assign(team).FirstOrCreate(&team)
 }

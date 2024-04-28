@@ -69,7 +69,7 @@ func fetchAndPersistStandings() {
 		}
 
 		for _, ranking := range rankings {
-			team := transformer.CreateTeamFromResponse(ranking.Team, competition.ID)
+			team := transformer.CreateTeamFromResponse(ranking.Team)
 			result := dbGorm.Where("id = ?", team.ID).Assign(team).FirstOrCreate(&team)
 			if result.Error != nil {
 				errorCount++
