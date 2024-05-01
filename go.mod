@@ -3,6 +3,7 @@ module schedule
 go 1.21.6
 
 require (
+	github.com/go-telegram/bot v1.2.2
 	github.com/joho/godotenv v1.5.1
 	github.com/syurchen93/api-football-client v0.0.0-20240427135740-702d5d8f7e83
 	github.com/urfave/cli/v2 v2.27.2
@@ -16,7 +17,7 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.19.0 // indirect
+	github.com/go-playground/validator/v10 v10.20.0 // indirect
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect

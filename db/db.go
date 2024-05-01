@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm/schema"
 
 	"schedule/model"
+	"schedule/model/bot"
 	"schedule/model/league"
 	"schedule/util"
 )
@@ -26,7 +27,16 @@ func Init() {
 		panic("DB Connection Error")
 	}
 
-	err = db.AutoMigrate(&league.Country{}, &league.Competition{}, &model.Team{}, &league.Standing{}, &league.Fixture{})
+	err = db.AutoMigrate(
+		&league.Country{},
+		&league.Competition{},
+		&league.Standing{},
+		&league.Fixture{},
+
+		&model.Team{},
+
+		&bot.User{},
+	)
 	if err != nil {
 		panic("DB Migration Error")
 	}
