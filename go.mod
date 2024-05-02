@@ -13,6 +13,7 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
+	github.com/BurntSushi/toml v1.3.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
@@ -24,6 +25,7 @@ require (
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/martinlindhe/unit v0.0.0-20230420213220-4adfd7d0a0d6 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/nicksnyder/go-i18n/v2 v2.4.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20240312152122-5f08fbb34913 // indirect
 	golang.org/x/crypto v0.22.0 // indirect
@@ -31,4 +33,5 @@ require (
 	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

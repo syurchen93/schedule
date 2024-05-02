@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
-	"gorm.io/gorm"
 	"os"
 	"os/signal"
 
+	"gorm.io/gorm"
+
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 
 	"schedule/db"
 	"schedule/util"
@@ -17,6 +19,8 @@ import (
 )
 
 var dbGorm *gorm.DB
+var defaultLocale = "en"
+var supportedLocales = []string{"en"}
 
 func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
@@ -75,12 +79,41 @@ func defaultHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 	_, err = b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:      update.Message.Chat.ID,
-		Text:        "Click by button",
+		Text:        transateForUpdateUser("Greetings", update),
 		ReplyMarkup: kb,
 	})
 	if nil != err {
 		panic(err)
 	}
+}
+
+func transateForUpdateUser(key string, update *models.Update) string {
+	util.InitLocale("tgbot/translation", supportedLocales)
+	locale, err := getUserLocale(update)
+	if nil != err {
+		panic(err)
+	}
+	localizer := util.GetLocalizer(locale)
+
+	return localizer.MustLocalize(&i18n.LocalizeConfig{
+		MessageID: key,
+	})
+}
+
+func getUserLocale(update *models.Update) (string, error) {
+	user := model.User{}
+	result := dbGorm.First(&user, update.Message.From.ID)
+	if result.Error != nil {
+		return "", result.Error
+	}
+
+	for _, locale := range supportedLocales {
+		if user.Locale == locale {
+			return user.Locale, nil
+		}
+	}
+
+	return defaultLocale, nil
 }
 
 func createUser(ctx context.Context, b *bot.Bot, update *models.Update) error {
