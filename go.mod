@@ -22,7 +22,9 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/kataras/i18n v0.0.8 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
+	github.com/m1/go-localize v0.0.0-20211029182338-afe69daa64ab // indirect
 	github.com/martinlindhe/unit v0.0.0-20230420213220-4adfd7d0a0d6 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/nicksnyder/go-i18n/v2 v2.4.0 // indirect
@@ -33,5 +35,7 @@ require (
 	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
+	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
