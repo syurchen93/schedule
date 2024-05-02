@@ -5,6 +5,7 @@ go 1.21.6
 require (
 	github.com/go-telegram/bot v1.2.2
 	github.com/joho/godotenv v1.5.1
+	github.com/kataras/i18n v0.0.8
 	github.com/syurchen93/api-football-client v0.0.0-20240427135740-702d5d8f7e83
 	github.com/urfave/cli/v2 v2.27.2
 	gorm.io/driver/mysql v1.5.6
@@ -22,12 +23,9 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/kataras/i18n v0.0.8 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
-	github.com/m1/go-localize v0.0.0-20211029182338-afe69daa64ab // indirect
 	github.com/martinlindhe/unit v0.0.0-20230420213220-4adfd7d0a0d6 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
-	github.com/nicksnyder/go-i18n/v2 v2.4.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20240312152122-5f08fbb34913 // indirect
 	golang.org/x/crypto v0.22.0 // indirect
@@ -36,6 +34,5 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
