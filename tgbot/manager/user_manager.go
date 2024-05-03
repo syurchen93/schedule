@@ -2,9 +2,9 @@ package manager
 
 import (
 	"context"
-	"gorm.io/gorm"
-	"github.com/go-telegram/bot/models"
 	"github.com/go-telegram/bot"
+	"github.com/go-telegram/bot/models"
+	"gorm.io/gorm"
 	"schedule/util/transformer"
 
 	model "schedule/model/bot"

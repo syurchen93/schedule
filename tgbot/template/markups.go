@@ -3,8 +3,8 @@ package template
 import (
 	"github.com/go-telegram/bot/models"
 	model "schedule/model/bot"
-	"strings"
 	"schedule/util"
+	"strings"
 )
 
 var LanguageSelectKeyboard = &models.InlineKeyboardMarkup{
@@ -43,7 +43,7 @@ func GetLanguageSelectKeyboardForUser(user model.User) *models.InlineKeyboardMar
 			break
 		}
 	}
-	userKeyboard.InlineKeyboard = append(userKeyboard.InlineKeyboard, 
+	userKeyboard.InlineKeyboard = append(userKeyboard.InlineKeyboard,
 		[]models.InlineKeyboardButton{translateButtonForUser(user, ButtonSettings)},
 		[]models.InlineKeyboardButton{translateButtonForUser(user, ButtonSchedule)},
 	)
