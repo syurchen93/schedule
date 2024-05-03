@@ -4,6 +4,7 @@ import (
 	"github.com/go-telegram/bot/models"
 	model "schedule/model/bot"
 	"strings"
+	"schedule/util"
 )
 
 var LanguageSelectKeyboard = &models.InlineKeyboardMarkup{
@@ -14,6 +15,16 @@ var LanguageSelectKeyboard = &models.InlineKeyboardMarkup{
 			{Text: "🇩🇪 Deutsch", CallbackData: "set_lang_de"},
 		},
 	},
+}
+
+var ButtonSettings = models.InlineKeyboardButton{
+	Text:         "ToSettings",
+	CallbackData: "settings",
+}
+
+var ButtonSchedule = models.InlineKeyboardButton{
+	Text:         "ToSchedule",
+	CallbackData: "schedule",
 }
 
 func GetLanguageSelectKeyboardForUser(user model.User) *models.InlineKeyboardMarkup {
@@ -32,8 +43,18 @@ func GetLanguageSelectKeyboardForUser(user model.User) *models.InlineKeyboardMar
 			break
 		}
 	}
+	userKeyboard.InlineKeyboard = append(userKeyboard.InlineKeyboard, 
+		[]models.InlineKeyboardButton{translateButtonForUser(user, ButtonSettings)},
+		[]models.InlineKeyboardButton{translateButtonForUser(user, ButtonSchedule)},
+	)
 
 	return userKeyboard
+}
+
+func translateButtonForUser(user model.User, button models.InlineKeyboardButton) models.InlineKeyboardButton {
+	button.Text = util.Translate(user.Locale, button.Text)
+
+	return button
 }
 
 func remove(slice []models.InlineKeyboardButton, i int) []models.InlineKeyboardButton {
