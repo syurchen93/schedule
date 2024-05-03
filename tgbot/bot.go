@@ -11,18 +11,14 @@ import (
 	"github.com/go-telegram/bot/models"
 
 	"schedule/db"
+	"schedule/tgbot/manager"
 	"schedule/tgbot/template"
 	"schedule/util"
-	"schedule/util/transformer"
-
-	model "schedule/model/bot"
 )
 
 var dbGorm *gorm.DB
 var defaultLocale = "en"
 var supportedLocales = []string{"en", "ru", "de"}
-
-var currentUser *model.User
 
 func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
@@ -32,6 +28,7 @@ func main() {
 	dbGorm = db.Db()
 
 	util.InitTranslator("tgbot/translation", supportedLocales)
+	manager.Init(dbGorm, defaultLocale, supportedLocales)
 
 	opts := []bot.Option{
 		bot.WithDefaultHandler(defaultHandler),
@@ -56,7 +53,7 @@ func callbackHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 
 	locale := update.CallbackQuery.Data[len("set_lang_"):]
-	err = updateCurrentUserLocale(locale)
+	err = manager.UpdateCurrentUserLocale(locale)
 	if nil != err {
 		panic(err)
 	}
@@ -64,7 +61,7 @@ func callbackHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	_, err = b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:      update.CallbackQuery.Message.Message.Chat.ID,
 		Text:        transateForUpdateUser("Greetings", update),
-		ReplyMarkup: template.GetLanguageSelectKeyboardForUser(*currentUser),
+		ReplyMarkup: template.GetLanguageSelectKeyboardForUser(*manager.GetCurrentUser()),
 	})
 	if nil != err {
 		panic(err)
@@ -72,7 +69,7 @@ func callbackHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 }
 
 func defaultHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	user, err := createUser(ctx, b, update)
+	user, err := manager.CreateUser(ctx, b, update)
 	if nil != err {
 		panic(err)
 	}
@@ -88,72 +85,10 @@ func defaultHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 }
 
 func transateForUpdateUser(key string, update *models.Update) string {
-	locale, err := getUserLocale(update)
+	locale, err := manager.GetUserLocale(update)
 	if nil != err {
 		panic(err)
 	}
 
 	return util.Translate(locale, key)
-}
-
-func createUser(ctx context.Context, b *bot.Bot, update *models.Update) (*model.User, error) {
-	if currentUser != nil {
-		return currentUser, nil
-	}
-
-	chatMember, err := b.GetChatMember(ctx, &bot.GetChatMemberParams{
-		ChatID: update.Message.Chat.ID,
-		UserID: update.Message.From.ID,
-	})
-	if nil != err {
-		return nil, err
-	}
-
-	user := transformer.CreateUserFromChatMember(chatMember)
-	result := dbGorm.FirstOrCreate(&user, model.User{ID: user.ID})
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	currentUser = &user
-
-	return &user, nil
-}
-
-func updateCurrentUserLocale(locale string) error {
-	result := dbGorm.Model(currentUser).Update("locale", locale)
-	if result.Error != nil {
-		return result.Error
-	}
-	currentUser.Locale = locale
-
-	return nil
-}
-
-func getUserLocale(update *models.Update) (string, error) {
-	if currentUser != nil {
-		return currentUser.Locale, nil
-	}
-	user, err := getUserByUpdate(update)
-	if err != nil {
-		return "", err
-	}
-
-	for _, locale := range supportedLocales {
-		if user.Locale == locale {
-			return user.Locale, nil
-		}
-	}
-
-	return defaultLocale, nil
-}
-
-func getUserByUpdate(update *models.Update) (model.User, error) {
-	user := model.User{}
-
-	result := dbGorm.First(&user, update.Message.From.ID)
-	if result.Error != nil {
-		return user, result.Error
-	}
-
-	return user, nil
 }
