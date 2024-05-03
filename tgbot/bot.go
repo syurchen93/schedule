@@ -32,7 +32,8 @@ func main() {
 
 	opts := []bot.Option{
 		bot.WithDefaultHandler(defaultHandler),
-		bot.WithCallbackQueryDataHandler("set_lang_", bot.MatchTypePrefix, callbackHandler),
+		bot.WithCallbackQueryDataHandler("set_lang_", bot.MatchTypePrefix, setLocaleHandler),
+		bot.WithCallbackQueryDataHandler("settings", bot.MatchTypeExact, settingsHandler),
 	}
 
 	b, err := bot.New(util.GetEnv("TELEGRAM_BOT_TOKEN"), opts...)
@@ -43,7 +44,11 @@ func main() {
 	b.Start(ctx)
 }
 
-func callbackHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+func settingsHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+
+}
+
+func setLocaleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	_, err := b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 		CallbackQueryID: update.CallbackQuery.ID,
 		ShowAlert:       false,
