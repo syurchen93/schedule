@@ -33,7 +33,7 @@ func main() {
 	opts := []bot.Option{
 		bot.WithDefaultHandler(defaultHandler),
 		bot.WithCallbackQueryDataHandler("set_lang_", bot.MatchTypePrefix, setLocaleHandler),
-		bot.WithCallbackQueryDataHandler("settings", bot.MatchTypeExact, settingsHandler),
+		bot.WithCallbackQueryDataHandler("settings", bot.MatchTypeExact, settingsGeneralHandler),
 	}
 
 	b, err := bot.New(util.GetEnv("TELEGRAM_BOT_TOKEN"), opts...)
@@ -44,21 +44,28 @@ func main() {
 	b.Start(ctx)
 }
 
-func settingsHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+func settingsGeneralHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	answerCallbackQuery(ctx, b, update)
 
-}
+	user := manager.GetOrCreateUser(ctx, b, update)
 
-func setLocaleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	_, err := b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
-		CallbackQueryID: update.CallbackQuery.ID,
-		ShowAlert:       false,
+	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:      update.CallbackQuery.Message.Message.Chat.ID,
+		Text:        transateForUpdateUser("SettingsGeneral", update),
+		ReplyMarkup: template.TranslateKeyboardForUser(*user, template.KeyboardSettingsGeneral),
 	})
 	if nil != err {
 		panic(err)
 	}
+}
+
+func setLocaleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	answerCallbackQuery(ctx, b, update)
 
 	locale := update.CallbackQuery.Data[len("set_lang_"):]
-	err = manager.UpdateCurrentUserLocale(locale)
+	_ = manager.GetOrCreateUser(ctx, b, update)
+
+	err := manager.UpdateCurrentUserLocale(locale)
 	if nil != err {
 		panic(err)
 	}
@@ -74,12 +81,11 @@ func setLocaleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 }
 
 func defaultHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	user, err := manager.CreateUser(ctx, b, update)
-	if nil != err {
-		panic(err)
-	}
+	answerCallbackQuery(ctx, b, update)
 
-	_, err = b.SendMessage(ctx, &bot.SendMessageParams{
+	user := manager.GetOrCreateUser(ctx, b, update)
+
+	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:      update.Message.Chat.ID,
 		Text:        transateForUpdateUser("Greetings", update),
 		ReplyMarkup: template.GetLanguageSelectKeyboardForUser(*user),
@@ -96,4 +102,14 @@ func transateForUpdateUser(key string, update *models.Update) string {
 	}
 
 	return util.Translate(locale, key)
+}
+
+func answerCallbackQuery(ctx context.Context, b *bot.Bot, update *models.Update) {
+	_, err := b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
+		CallbackQueryID: update.CallbackQuery.ID,
+		ShowAlert:       false,
+	})
+	if nil != err {
+		panic(err)
+	}
 }

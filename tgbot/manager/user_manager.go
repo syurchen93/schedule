@@ -2,10 +2,11 @@ package manager
 
 import (
 	"context"
+	"schedule/util/transformer"
+
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 	"gorm.io/gorm"
-	"schedule/util/transformer"
 
 	model "schedule/model/bot"
 )
@@ -24,29 +25,6 @@ func Init(db *gorm.DB, defaultLocaleArg string, supportedLocalesArg []string) {
 
 func GetCurrentUser() *model.User {
 	return currentUser
-}
-
-func CreateUser(ctx context.Context, b *bot.Bot, update *models.Update) (*model.User, error) {
-	if currentUser != nil {
-		return currentUser, nil
-	}
-
-	chatMember, err := b.GetChatMember(ctx, &bot.GetChatMemberParams{
-		ChatID: update.Message.Chat.ID,
-		UserID: update.Message.From.ID,
-	})
-	if nil != err {
-		return nil, err
-	}
-
-	user := transformer.CreateUserFromChatMember(chatMember)
-	result := dbGorm.FirstOrCreate(&user, model.User{ID: user.ID})
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	currentUser = &user
-
-	return &user, nil
 }
 
 func UpdateCurrentUserLocale(locale string) error {
@@ -77,13 +55,50 @@ func GetUserLocale(update *models.Update) (string, error) {
 	return defaultLocale, nil
 }
 
-func getUserByUpdate(update *models.Update) (model.User, error) {
-	user := model.User{}
-
-	result := dbGorm.First(&user, update.Message.From.ID)
-	if result.Error != nil {
-		return user, result.Error
+func GetOrCreateUser(ctx context.Context, b *bot.Bot, update *models.Update) *model.User {
+	if currentUser != nil {
+		return currentUser
 	}
 
-	return user, nil
+	user, err := getUserByUpdate(update)
+	if err != nil {
+		user, err = createUser(ctx, b, update)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	return user
+}
+
+func getUserByUpdate(update *models.Update) (*model.User, error) {
+	user := model.User{}
+
+	result := dbGorm.First(&user, update.CallbackQuery.From.ID)
+
+	if result.Error != nil {
+		return &user, result.Error
+	}
+	currentUser = &user
+
+	return &user, nil
+}
+
+func createUser(ctx context.Context, b *bot.Bot, update *models.Update) (*model.User, error) {
+	chatMember, err := b.GetChatMember(ctx, &bot.GetChatMemberParams{
+		ChatID: update.Message.Chat.ID,
+		UserID: update.Message.From.ID,
+	})
+	if nil != err {
+		return nil, err
+	}
+
+	user := transformer.CreateUserFromChatMember(chatMember)
+	result := dbGorm.FirstOrCreate(&user, model.User{ID: user.ID})
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	currentUser = &user
+
+	return &user, nil
 }

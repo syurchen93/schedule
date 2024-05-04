@@ -6,7 +6,11 @@ import (
 	"github.com/kataras/i18n"
 )
 
-var translator *i18n.I18n
+type TranslatorInterface interface {
+	Tr(locale, key string, args ...interface{}) string
+}
+
+var translator TranslatorInterface
 
 func InitTranslator(path string, supportedLocales []string) {
 	var err error
@@ -18,4 +22,8 @@ func InitTranslator(path string, supportedLocales []string) {
 
 func Translate(locale, key string) string {
 	return translator.Tr(locale, key)
+}
+
+func SetTranslator(t TranslatorInterface) {
+	translator = t
 }

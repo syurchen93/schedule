@@ -17,6 +17,16 @@ var LanguageSelectKeyboard = &models.InlineKeyboardMarkup{
 	},
 }
 
+var KeyboardSettingsGeneral = &models.InlineKeyboardMarkup{
+	InlineKeyboard: [][]models.InlineKeyboardButton{
+		{
+			{Text: "SettingsCountry", CallbackData: "settings_country"},
+			{Text: "SettingsCompetition", CallbackData: "settings_competition"},
+			{Text: "SettingsAlert", CallbackData: "settings_alert"},
+		},
+	},
+}
+
 var ButtonSettings = models.InlineKeyboardButton{
 	Text:         "ToSettings",
 	CallbackData: "settings",
@@ -25,6 +35,21 @@ var ButtonSettings = models.InlineKeyboardButton{
 var ButtonSchedule = models.InlineKeyboardButton{
 	Text:         "ToSchedule",
 	CallbackData: "schedule",
+}
+
+func TranslateKeyboardForUser(user model.User, keyboard *models.InlineKeyboardMarkup) *models.InlineKeyboardMarkup {
+	userKeyboard := &models.InlineKeyboardMarkup{
+		InlineKeyboard: make([][]models.InlineKeyboardButton, len(keyboard.InlineKeyboard)),
+	}
+
+	for i, row := range keyboard.InlineKeyboard {
+		userKeyboard.InlineKeyboard[i] = make([]models.InlineKeyboardButton, len(row))
+		for j, button := range row {
+			userKeyboard.InlineKeyboard[i][j] = translateButtonForUser(user, button)
+		}
+	}
+
+	return userKeyboard
 }
 
 func GetLanguageSelectKeyboardForUser(user model.User) *models.InlineKeyboardMarkup {
