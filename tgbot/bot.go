@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"os/signal"
+	"strconv"
 
 	"gorm.io/gorm"
 
@@ -34,6 +35,8 @@ func main() {
 		bot.WithDefaultHandler(defaultHandler),
 		bot.WithCallbackQueryDataHandler("set_lang_", bot.MatchTypePrefix, setLocaleHandler),
 		bot.WithCallbackQueryDataHandler("settings", bot.MatchTypeExact, settingsGeneralHandler),
+		bot.WithCallbackQueryDataHandler("settings_country", bot.MatchTypeExact, settingsCountryHandler),
+		bot.WithCallbackQueryDataHandler("settings_country_toggle", bot.MatchTypePrefix, settingsCountryToggleHandler),
 	}
 
 	b, err := bot.New(util.GetEnv("TELEGRAM_BOT_TOKEN"), opts...)
@@ -42,6 +45,36 @@ func main() {
 	}
 
 	b.Start(ctx)
+}
+
+func settingsCountryToggleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	answerCallbackQuery(ctx, b, update)
+
+	user := manager.GetOrCreateUser(ctx, b, update)
+	countryId, err := strconv.Atoi(update.CallbackQuery.Data[len("settings_country_toggle_"):])
+	if nil != err {
+		panic(err)
+	}
+
+	manager.ToggleUserCountrySettings(user, countryId)
+
+}
+
+func settingsCountryHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	answerCallbackQuery(ctx, b, update)
+
+	user := manager.GetOrCreateUser(ctx, b, update)
+
+	userCountrySettings := manager.GetUserCountrySettings(user)
+
+	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:      update.CallbackQuery.Message.Message.Chat.ID,
+		Text:        transateForUpdateUser("SettingsCountryHeader", update),
+		ReplyMarkup: template.GetUserCountrySettingsKyboard(user, userCountrySettings),
+	})
+	if nil != err {
+		panic(err)
+	}
 }
 
 func settingsGeneralHandler(ctx context.Context, b *bot.Bot, update *models.Update) {

@@ -1,10 +1,13 @@
 package template
 
 import (
-	"github.com/go-telegram/bot/models"
+	"fmt"
 	model "schedule/model/bot"
+	"schedule/tgbot/manager"
 	"schedule/util"
 	"strings"
+
+	"github.com/go-telegram/bot/models"
 )
 
 var LanguageSelectKeyboard = &models.InlineKeyboardMarkup{
@@ -24,6 +27,9 @@ var KeyboardSettingsGeneral = &models.InlineKeyboardMarkup{
 			{Text: "SettingsCompetition", CallbackData: "settings_competition"},
 			{Text: "SettingsAlert", CallbackData: "settings_alert"},
 		},
+		{
+			ButtonSchedule,
+		},
 	},
 }
 
@@ -35,6 +41,38 @@ var ButtonSettings = models.InlineKeyboardButton{
 var ButtonSchedule = models.InlineKeyboardButton{
 	Text:         "ToSchedule",
 	CallbackData: "schedule",
+}
+
+func GetUserCountrySettingsKyboard(user *model.User, countrySettings []manager.CountrySettings) *models.InlineKeyboardMarkup {
+	var toggleTextKey string
+	keyboard := &models.InlineKeyboardMarkup{}
+	for _, country := range countrySettings {
+		if country.UserDisabled {
+			toggleTextKey = "Enable"
+		} else {
+			toggleTextKey = "Disable"
+		}
+
+		keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{
+			{
+				Text: fmt.Sprintf(
+					"%s %s %s",
+					util.Translate(user.Locale, toggleTextKey),
+					country.Emoji,
+					country.Name,
+				),
+				CallbackData: fmt.Sprintf("settings_country_toggle_%d", country.ID),
+			},
+		})
+	}
+	keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{
+		{
+			Text:         util.Translate(user.Locale, "Back"),
+			CallbackData: "settings",
+		},
+	})
+
+	return keyboard
 }
 
 func TranslateKeyboardForUser(user model.User, keyboard *models.InlineKeyboardMarkup) *models.InlineKeyboardMarkup {

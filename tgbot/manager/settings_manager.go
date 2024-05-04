@@ -19,12 +19,23 @@ type CompetitionSettings struct {
 }
 
 var CountryEmojiMap = map[string]string{
-	"England": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
-	"Germany": "🇩🇪",
-	"Spain":   "🇪🇸",
-	"France":  "🇫🇷",
-	"Italy":   "🇮🇹",
-	"World":   "🌍",
+	"England": "\U0001F3F4",
+	"Germany": "\U0001F1E9\U0001F1EA",
+	"Spain":   "\U0001F1EA\U0001F1F8",
+	"France":  "\U0001F1EB\U0001F1F7",
+	"Italy":   "\U0001F1EE\U0001F1F9",
+	"World":   "\U0001F30D",
+}
+
+func ToggleUserCountrySettings(user *bot.User, countryID int) {
+	disabledCountryIds := user.GetDisabledCountries()
+	if sliceContains(disabledCountryIds, countryID) {
+		user.SetDisabledCountries(removeElement(disabledCountryIds, countryID))
+	} else {
+		user.SetDisabledCountries(append(disabledCountryIds, countryID))
+	}
+
+	dbGorm.Save(user)
 }
 
 func GetUserCountrySettings(user *bot.User) []CountrySettings {
@@ -37,7 +48,7 @@ func GetUserCountrySettings(user *bot.User) []CountrySettings {
 			ID:           country.ID,
 			Name:         country.Name,
 			Emoji:        CountryEmojiMap[country.Name],
-			UserDisabled: sliceContains(user.DisabledCountries, int(country.ID)),
+			UserDisabled: sliceContains(user.GetDisabledCountries(), int(country.ID)),
 		})
 	}
 
@@ -53,7 +64,7 @@ func GetUserCountryCompetitionSettings(user *bot.User, countryID uint) []Competi
 		competitionSettings = append(competitionSettings, CompetitionSettings{
 			ID:           competition.ID,
 			Name:         competition.Name,
-			UserDisabled: sliceContains(user.DisabledCompetitions, int(competition.ID)),
+			UserDisabled: sliceContains(user.GetDisabledCompetitions(), int(competition.ID)),
 		})
 	}
 
@@ -67,4 +78,13 @@ func sliceContains(slice []int, element int) bool {
 		}
 	}
 	return false
+}
+
+func removeElement(slice []int, element int) []int {
+	for i, value := range slice {
+		if value == element {
+			return append(slice[:i], slice[i+1:]...)
+		}
+	}
+	return slice
 }
