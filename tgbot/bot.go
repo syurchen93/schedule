@@ -58,6 +58,28 @@ func settingsCountryToggleHandler(ctx context.Context, b *bot.Bot, update *model
 
 	manager.ToggleUserCountrySettings(user, countryId)
 
+	success, err := b.EditMessageReplyMarkup(ctx, &bot.EditMessageReplyMarkupParams{
+		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
+		MessageID: update.CallbackQuery.Message.Message.ID,
+		ReplyMarkup: template.GetUserCountrySettingsKyboard(
+			user,
+			manager.GetUserCountrySettings(user),
+		),
+	})
+	if nil != err {
+		panic(err)
+	}
+	if success != nil {
+		return
+	}
+
+	_, err = b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID: update.CallbackQuery.Message.Message.Chat.ID,
+		Text:   transateForUpdateUser("Done", update),
+	})
+	if nil != err {
+		panic(err)
+	}
 }
 
 func settingsCountryHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
