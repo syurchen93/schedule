@@ -19,12 +19,12 @@ type CompetitionSettings struct {
 }
 
 var CountryEmojiMap = map[string]string{
-	"England": "\U0001F3F4",
-	"Germany": "\U0001F1E9\U0001F1EA",
-	"Spain":   "\U0001F1EA\U0001F1F8",
-	"France":  "\U0001F1EB\U0001F1F7",
-	"Italy":   "\U0001F1EE\U0001F1F9",
-	"World":   "\U0001F30D",
+	"England":     "\U0001F3F4",
+	"Germany":     "\U0001F1E9\U0001F1EA",
+	"Spain":       "\U0001F1EA\U0001F1F8",
+	"France":      "\U0001F1EB\U0001F1F7",
+	"Italy":       "\U0001F1EE\U0001F1F9",
+	"UEFA & FIFA": "\U0001F30D",
 }
 
 func ToggleUserCountrySettings(user *bot.User, countryID int) {

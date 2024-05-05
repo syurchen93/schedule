@@ -51,6 +51,9 @@ func fetchAndPersistCountries() {
 
 	for _, countryResponse := range countryResponses {
 		country := transformer.CreateCountryFromResponse(countryResponse.(leagues.Country))
+		if country.Name == "World" {
+			country.Name = "UEFA & FIFA"
+		}
 		result := dbGorm.Where("name = ?", country.Name).Assign(country).FirstOrCreate(&country)
 		if result.Error != nil {
 			errorCount++
