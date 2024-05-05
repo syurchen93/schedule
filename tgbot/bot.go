@@ -33,10 +33,12 @@ func main() {
 
 	opts := []bot.Option{
 		bot.WithDefaultHandler(defaultHandler),
-		bot.WithCallbackQueryDataHandler("set_lang_", bot.MatchTypePrefix, setLocaleHandler),
-		bot.WithCallbackQueryDataHandler("settings", bot.MatchTypeExact, settingsGeneralHandler),
-		bot.WithCallbackQueryDataHandler("settings_country", bot.MatchTypeExact, settingsCountryHandler),
-		bot.WithCallbackQueryDataHandler("settings_country_toggle", bot.MatchTypePrefix, settingsCountryToggleHandler),
+		bot.WithCallbackQueryDataHandler(template.CbdSetLang, bot.MatchTypePrefix, setLocaleHandler),
+		bot.WithCallbackQueryDataHandler(template.CbdSettings, bot.MatchTypeExact, settingsGeneralHandler),
+		bot.WithCallbackQueryDataHandler(template.CbdSettingsCountry, bot.MatchTypeExact, settingsCountryHandler),
+		bot.WithCallbackQueryDataHandler(template.CbdSettingsCountryToggle, bot.MatchTypePrefix, settingsCountryToggleHandler),
+		bot.WithCallbackQueryDataHandler(template.CbdSettingsCompetition, bot.MatchTypeExact, SettingsCompetitionHandler),
+		bot.WithCallbackQueryDataHandler(template.CbdSettingsCompetitionToggle, bot.MatchTypePrefix, settingsCompetitionToggleHandler),
 	}
 
 	b, err := bot.New(util.GetEnv("TELEGRAM_BOT_TOKEN"), opts...)
@@ -47,11 +49,72 @@ func main() {
 	b.Start(ctx)
 }
 
+func settingsCompetitionToggleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	answerCallbackQuery(ctx, b, update)
+
+	user := manager.GetOrCreateUser(ctx, b, update)
+	compId, err := strconv.Atoi(update.CallbackQuery.Data[len(template.CbdSettingsCompetitionToggle):])
+	if nil != err {
+		panic(err)
+	}
+
+	manager.ToggleUserCompetitionSettings(user, compId)
+
+	success, err := b.EditMessageReplyMarkup(ctx, &bot.EditMessageReplyMarkupParams{
+		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
+		MessageID: update.CallbackQuery.Message.Message.ID,
+		ReplyMarkup: template.GetUserCompetitonSettingsKyboard(
+			user,
+			manager.GetUserCountryCompetitionSettings(user, manager.GetCompetitionCountryID(compId)),
+		),
+	})
+	if nil != err {
+		panic(err)
+	}
+	checkIfSuccessfulMessageEdit(ctx, b, update, success)
+}
+
+func SettingsCompetitionHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	answerCallbackQuery(ctx, b, update)
+
+	user := manager.GetOrCreateUser(ctx, b, update)
+
+	userCountries := manager.GetUserEnabledCountries(user)
+
+	baseMessageKey := "SettingsCompetitionHeader"
+
+	if len(userCountries) == 0 {
+		baseMessageKey = "SettingsCompetitionHeaderNoCountries"
+	}
+
+	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID: update.CallbackQuery.Message.Message.Chat.ID,
+		Text:   util.Translate(user.Locale, baseMessageKey),
+	})
+	if nil != err {
+		panic(err)
+	}
+
+	for _, country := range userCountries {
+		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: update.CallbackQuery.Message.Message.Chat.ID,
+			Text:   manager.GetCountryWithEmoji(country.Name),
+			ReplyMarkup: template.GetUserCompetitonSettingsKyboard(
+				user,
+				manager.GetUserCountryCompetitionSettings(user, country.ID),
+			),
+		})
+		if nil != err {
+			panic(err)
+		}
+	}
+}
+
 func settingsCountryToggleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	answerCallbackQuery(ctx, b, update)
 
 	user := manager.GetOrCreateUser(ctx, b, update)
-	countryId, err := strconv.Atoi(update.CallbackQuery.Data[len("settings_country_toggle_"):])
+	countryId, err := strconv.Atoi(update.CallbackQuery.Data[len(template.CbdSettingsCountryToggle):])
 	if nil != err {
 		panic(err)
 	}
@@ -69,17 +132,7 @@ func settingsCountryToggleHandler(ctx context.Context, b *bot.Bot, update *model
 	if nil != err {
 		panic(err)
 	}
-	if success != nil {
-		return
-	}
-
-	_, err = b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.CallbackQuery.Message.Message.Chat.ID,
-		Text:   transateForUpdateUser("Done", update),
-	})
-	if nil != err {
-		panic(err)
-	}
+	checkIfSuccessfulMessageEdit(ctx, b, update, success)
 }
 
 func settingsCountryHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
@@ -141,7 +194,7 @@ func defaultHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	user := manager.GetOrCreateUser(ctx, b, update)
 
 	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID:      update.Message.Chat.ID,
+		ChatID:      update.CallbackQuery.Message.Message.Chat.ID,
 		Text:        transateForUpdateUser("Greetings", update),
 		ReplyMarkup: template.GetLanguageSelectKeyboardForUser(*user),
 	})
@@ -163,6 +216,20 @@ func answerCallbackQuery(ctx context.Context, b *bot.Bot, update *models.Update)
 	_, err := b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 		CallbackQueryID: update.CallbackQuery.ID,
 		ShowAlert:       false,
+	})
+	if nil != err {
+		panic(err)
+	}
+}
+
+func checkIfSuccessfulMessageEdit(ctx context.Context, b *bot.Bot, update *models.Update, success *models.Message) {
+	if success != nil {
+		return
+	}
+
+	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID: update.CallbackQuery.Message.Message.Chat.ID,
+		Text:   transateForUpdateUser("Done", update),
 	})
 	if nil != err {
 		panic(err)

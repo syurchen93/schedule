@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"fmt"
 	"schedule/model/bot"
 	"schedule/model/league"
 )
@@ -27,12 +28,40 @@ var CountryEmojiMap = map[string]string{
 	"UEFA & FIFA": "\U0001F30D",
 }
 
+func GetCountryWithEmoji(countryName string) string {
+	emoji, ok := CountryEmojiMap[countryName]
+	if !ok {
+		return countryName
+	}
+	return emoji + " " + countryName
+}
+
 func ToggleUserCountrySettings(user *bot.User, countryID int) {
 	disabledCountryIds := user.GetDisabledCountries()
 	if sliceContains(disabledCountryIds, countryID) {
 		user.SetDisabledCountries(removeElement(disabledCountryIds, countryID))
 	} else {
 		user.SetDisabledCountries(append(disabledCountryIds, countryID))
+	}
+
+	dbGorm.Save(user)
+}
+
+func GetCompetitionCountryID(competitionID int) uint {
+	var competition league.Competition
+	dbGorm.First(&competition, competitionID)
+	if competition.ID == 0 {
+		panic(fmt.Sprintf("Competition ID %d not found", competitionID))
+	}
+	return competition.CountryID
+}
+
+func ToggleUserCompetitionSettings(user *bot.User, compID int) {
+	disabledCompIds := user.GetDisabledCompetitions()
+	if sliceContains(disabledCompIds, compID) {
+		user.SetDisabledCompetitons(removeElement(disabledCompIds, compID))
+	} else {
+		user.SetDisabledCompetitons(append(disabledCompIds, compID))
 	}
 
 	dbGorm.Save(user)
@@ -55,11 +84,22 @@ func GetUserCountrySettings(user *bot.User) []CountrySettings {
 	return countrySettings
 }
 
+func GetUserEnabledCountries(user *bot.User) []league.Country {
+	var countries []league.Country
+	if len(user.GetDisabledCountries()) == 0 {
+		dbGorm.Where("enabled = ?", 1).Find(&countries)
+	} else {
+		dbGorm.Where("enabled = ? and id NOT IN (?)", 1, user.GetDisabledCountries()).Find(&countries)
+	}
+
+	return countries
+}
+
 func GetUserCountryCompetitionSettings(user *bot.User, countryID uint) []CompetitionSettings {
 	var competitionSettings []CompetitionSettings
 
 	var competitions []league.Competition
-	dbGorm.Where("country_id = ?", countryID).Find(&competitions)
+	dbGorm.Where("country_id = ? and enabled = 1", countryID).Find(&competitions)
 	for _, competition := range competitions {
 		competitionSettings = append(competitionSettings, CompetitionSettings{
 			ID:           competition.ID,

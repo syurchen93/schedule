@@ -18,10 +18,7 @@ type User struct {
 
 func (u *User) GetDisabledCountries() []int {
 	var result []int
-	err := json.Unmarshal(u.DisabledCountries, &result)
-	if err != nil {
-		return result
-	}
+	_ = json.Unmarshal(u.DisabledCountries, &result)
 	return result
 }
 
@@ -32,10 +29,7 @@ func (u *User) SetDisabledCountries(ids []int) {
 
 func (u *User) GetDisabledCompetitions() []int {
 	var result []int
-	err := json.Unmarshal(u.DisabledCompetitions, &result)
-	if err != nil {
-		return result
-	}
+	_ = json.Unmarshal(u.DisabledCompetitions, &result)
 	return result
 }
 

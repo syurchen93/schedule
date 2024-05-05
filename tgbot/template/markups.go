@@ -10,12 +10,23 @@ import (
 	"github.com/go-telegram/bot/models"
 )
 
+const (
+	CbdSettingsCountryToggle     = "settings_country_toggle_"
+	CbdSettingsCompetitionToggle = "settings_competition_toggle_"
+	CbdSettingsCountry           = "settings_country"
+	CbdSettingsCompetition       = "settings_competition"
+	CbdSettingsAlert             = "settings_alert"
+	CbdSettings                  = "settings"
+	CbdSchedule                  = "schedule"
+	CbdSetLang                   = "set_lang_"
+)
+
 var LanguageSelectKeyboard = &models.InlineKeyboardMarkup{
 	InlineKeyboard: [][]models.InlineKeyboardButton{
 		{
-			{Text: "🇬🇧 English", CallbackData: "set_lang_en"},
-			{Text: "🇷🇺 Русский", CallbackData: "set_lang_ru"},
-			{Text: "🇩🇪 Deutsch", CallbackData: "set_lang_de"},
+			{Text: "🇬🇧 English", CallbackData: CbdSetLang + "_en"},
+			{Text: "🇷🇺 Русский", CallbackData: CbdSetLang + "set_lang_ru"},
+			{Text: "🇩🇪 Deutsch", CallbackData: CbdSetLang + "set_lang_de"},
 		},
 	},
 }
@@ -23,9 +34,9 @@ var LanguageSelectKeyboard = &models.InlineKeyboardMarkup{
 var KeyboardSettingsGeneral = &models.InlineKeyboardMarkup{
 	InlineKeyboard: [][]models.InlineKeyboardButton{
 		{
-			{Text: "SettingsCountry", CallbackData: "settings_country"},
-			{Text: "SettingsCompetition", CallbackData: "settings_competition"},
-			{Text: "SettingsAlert", CallbackData: "settings_alert"},
+			{Text: "SettingsCountry", CallbackData: CbdSettingsCountry},
+			{Text: "SettingsCompetition", CallbackData: CbdSettingsCompetition},
+			{Text: "SettingsAlert", CallbackData: CbdSettingsAlert},
 		},
 		{
 			ButtonSchedule,
@@ -35,12 +46,43 @@ var KeyboardSettingsGeneral = &models.InlineKeyboardMarkup{
 
 var ButtonSettings = models.InlineKeyboardButton{
 	Text:         "ToSettings",
-	CallbackData: "settings",
+	CallbackData: CbdSettings,
 }
 
 var ButtonSchedule = models.InlineKeyboardButton{
 	Text:         "ToSchedule",
-	CallbackData: "schedule",
+	CallbackData: CbdSchedule,
+}
+
+func GetUserCompetitonSettingsKyboard(user *model.User, compSettings []manager.CompetitionSettings) *models.InlineKeyboardMarkup {
+	var toggleTextKey string
+	keyboard := &models.InlineKeyboardMarkup{}
+	for _, comp := range compSettings {
+		if comp.UserDisabled {
+			toggleTextKey = "Enable"
+		} else {
+			toggleTextKey = "Disable"
+		}
+
+		keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{
+			{
+				Text: fmt.Sprintf(
+					"%s %s",
+					util.Translate(user.Locale, toggleTextKey),
+					comp.Name,
+				),
+				CallbackData: fmt.Sprintf("%s%d", CbdSettingsCompetitionToggle, comp.ID),
+			},
+		})
+	}
+	keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{
+		{
+			Text:         util.Translate(user.Locale, "Back"),
+			CallbackData: CbdSettings,
+		},
+	})
+
+	return keyboard
 }
 
 func GetUserCountrySettingsKyboard(user *model.User, countrySettings []manager.CountrySettings) *models.InlineKeyboardMarkup {
@@ -61,7 +103,7 @@ func GetUserCountrySettingsKyboard(user *model.User, countrySettings []manager.C
 					country.Emoji,
 					country.Name,
 				),
-				CallbackData: fmt.Sprintf("settings_country_toggle_%d", country.ID),
+				CallbackData: fmt.Sprintf("%s%d", CbdSettingsCountryToggle, country.ID),
 			},
 		})
 	}
