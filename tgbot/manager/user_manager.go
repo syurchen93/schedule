@@ -86,8 +86,8 @@ func getUserByUpdate(update *models.Update) (*model.User, error) {
 
 func createUser(ctx context.Context, b *bot.Bot, update *models.Update) (*model.User, error) {
 	chatMember, err := b.GetChatMember(ctx, &bot.GetChatMemberParams{
-		ChatID: update.Message.Chat.ID,
-		UserID: update.Message.From.ID,
+		ChatID: update.CallbackQuery.Message.Message.Chat.ID,
+		UserID: update.CallbackQuery.From.ID,
 	})
 	if nil != err {
 		return nil, err
