@@ -36,6 +36,7 @@ func Init() {
 		&model.Team{},
 
 		&bot.User{},
+		&bot.Alert{},
 	)
 	if err != nil {
 		panic("DB Migration Error")
