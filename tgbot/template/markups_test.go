@@ -3,11 +3,12 @@ package template
 import (
 	"testing"
 
+	model "schedule/model/bot"
+	"schedule/util"
+
 	"github.com/go-telegram/bot/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	model "schedule/model/bot"
-	"schedule/util"
 )
 
 func TestTranslateKeyboardForUser(t *testing.T) {
@@ -16,6 +17,7 @@ func TestTranslateKeyboardForUser(t *testing.T) {
 	mockTranslator.On("Tr", "en", "SettingsCountry").Return("Countries")
 	mockTranslator.On("Tr", "en", "SettingsCompetition").Return("Competitions")
 	mockTranslator.On("Tr", "en", "SettingsAlert").Return("Alerts")
+	mockTranslator.On("Tr", "en", "ToSchedule").Return("ToSchedule")
 
 	util.SetTranslator(mockTranslator)
 
@@ -27,6 +29,9 @@ func TestTranslateKeyboardForUser(t *testing.T) {
 					{Text: "Countries", CallbackData: "settings_country"},
 					{Text: "Competitions", CallbackData: "settings_competition"},
 					{Text: "Alerts", CallbackData: "settings_alert"},
+				},
+				{
+					ButtonSchedule,
 				},
 			},
 		},
