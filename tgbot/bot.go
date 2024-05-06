@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"strconv"
@@ -39,6 +40,7 @@ func main() {
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsCountryToggle, bot.MatchTypePrefix, settingsCountryToggleHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsCompetition, bot.MatchTypeExact, SettingsCompetitionHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsCompetitionToggle, bot.MatchTypePrefix, settingsCompetitionToggleHandler),
+		bot.WithCallbackQueryDataHandler(template.CbdSchedule, bot.MatchTypeExact, scheduleHandler),
 	}
 
 	b, err := bot.New(util.GetEnv("TELEGRAM_BOT_TOKEN"), opts...)
@@ -47,6 +49,25 @@ func main() {
 	}
 
 	b.Start(ctx)
+}
+
+func scheduleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	answerCallbackQuery(ctx, b, update)
+
+	user := manager.GetOrCreateUser(ctx, b, update)
+
+	competitionFixtures := manager.GetCompetitionFixturesForUser(user)
+
+	for _, comp := range competitionFixtures {
+		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:      update.CallbackQuery.Message.Message.Chat.ID,
+			Text:        fmt.Sprintf("%s %s", manager.GetCountryEmoji(comp.CountryName), comp.CompName),
+			ReplyMarkup: template.GetFixturesKeyboardForUser(*user, comp.Fixtures),
+		})
+		if nil != err {
+			panic(err)
+		}
+	}
 }
 
 func settingsCompetitionToggleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {

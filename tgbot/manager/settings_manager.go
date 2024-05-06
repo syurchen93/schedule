@@ -28,9 +28,17 @@ var CountryEmojiMap = map[string]string{
 	"UEFA & FIFA": "\U0001F30D",
 }
 
-func GetCountryWithEmoji(countryName string) string {
+func GetCountryEmoji(countryName string) string {
 	emoji, ok := CountryEmojiMap[countryName]
 	if !ok {
+		return ""
+	}
+	return emoji
+}
+
+func GetCountryWithEmoji(countryName string) string {
+	emoji := GetCountryEmoji(countryName)
+	if emoji == "" {
 		return countryName
 	}
 	return emoji + " " + countryName

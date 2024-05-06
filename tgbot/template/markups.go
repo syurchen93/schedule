@@ -19,7 +19,10 @@ const (
 	CbdSettings                  = "settings"
 	CbdSchedule                  = "schedule"
 	CbdSetLang                   = "set_lang_"
+	CbdToggleAlert               = "alert_toggle_"
 )
+
+var TimeFormat = "Mon 2.01 15:04"
 
 var LanguageSelectKeyboard = &models.InlineKeyboardMarkup{
 	InlineKeyboard: [][]models.InlineKeyboardButton{
@@ -52,6 +55,30 @@ var ButtonSettings = models.InlineKeyboardButton{
 var ButtonSchedule = models.InlineKeyboardButton{
 	Text:         "ToSchedule",
 	CallbackData: CbdSchedule,
+}
+
+func GetFixturesKeyboardForUser(user model.User, fixtures []manager.FixtureView) *models.InlineKeyboardMarkup {
+	keyboard := &models.InlineKeyboardMarkup{}
+	for _, fixture := range fixtures {
+		keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{
+			{
+				Text: fmt.Sprintf(
+					"%s %s %s %s",
+					fixture.Date.Format(TimeFormat),
+					fixture.HomeTeamName,
+					fixture.Score,
+					fixture.AwayTeamName,
+				),
+				CallbackData: fmt.Sprintf("%s%d", CbdToggleAlert, fixture.ID),
+			},
+		})
+	}
+
+	keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{
+		translateButtonForUser(user, ButtonSettings),
+	})
+
+	return keyboard
 }
 
 func GetUserCompetitonSettingsKyboard(user *model.User, compSettings []manager.CompetitionSettings) *models.InlineKeyboardMarkup {
