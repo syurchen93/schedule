@@ -89,7 +89,7 @@ func generateScoreString(fixture league.Fixture) string {
 
 func getHydratedFixturesForUser(user *bot.User) []league.Fixture {
 	var fixtures []league.Fixture
-	dbGorm.Joins("left join competition on competition.id = fixture.competition_id").
+	query := dbGorm.Joins("left join competition on competition.id = fixture.competition_id").
 		Joins("left join country on country.id = competition.country_id").
 		Where("fixture.date > ?", time.Now()).
 		Preload("HomeTeam").
@@ -98,13 +98,13 @@ func getHydratedFixturesForUser(user *bot.User) []league.Fixture {
 		Preload("Competition.Country")
 
 	if len(user.GetDisabledCountries()) > 0 {
-		dbGorm = dbGorm.Not("country.id", user.GetDisabledCountries())
+		query = query.Not("country_id", user.GetDisabledCountries())
 	}
 
 	if len(user.GetDisabledCompetitions()) > 0 {
-		dbGorm = dbGorm.Not("competition.id", user.GetDisabledCompetitions())
+		query = query.Not("competition_id", user.GetDisabledCompetitions())
 	}
 
-	dbGorm.Find(&fixtures)
+	query.Find(&fixtures)
 	return fixtures
 }
