@@ -92,12 +92,19 @@ func getHydratedFixturesForUser(user *bot.User) []league.Fixture {
 	dbGorm.Joins("left join competition on competition.id = fixture.competition_id").
 		Joins("left join country on country.id = competition.country_id").
 		Where("fixture.date > ?", time.Now()).
-		Not("country.id", user.GetDisabledCountries()).
-		Not("competition.id", user.GetDisabledCompetitions()).
 		Preload("HomeTeam").
 		Preload("AwayTeam").
 		Preload("Competition").
-		Preload("Competition.Country").
-		Find(&fixtures)
+		Preload("Competition.Country")
+
+	if len(user.GetDisabledCountries()) > 0 {
+		dbGorm = dbGorm.Not("country.id", user.GetDisabledCountries())
+	}
+
+	if len(user.GetDisabledCompetitions()) > 0 {
+		dbGorm = dbGorm.Not("competition.id", user.GetDisabledCompetitions())
+	}
+
+	dbGorm.Find(&fixtures)
 	return fixtures
 }
