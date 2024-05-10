@@ -68,6 +68,7 @@ func createFixtureView(fixture league.Fixture) FixtureView {
 		Date:         fixture.Date,
 		Score:        generateScoreString(fixture),
 		Status:       fixture.Status,
+		HasAlert:     fixture.HasUserAlert,
 	}
 }
 
@@ -96,6 +97,7 @@ func generateScoreString(fixture league.Fixture) string {
 
 func getHydratedFixturesForUser(user *bot.User) []league.Fixture {
 	var fixtures []league.Fixture
+	subquery := dbGorm.Table("alert").Select("1").Where("alert.fixture_id = fixture.id AND alert.user_id = ?", user.ID)
 	query := dbGorm.Joins("left join competition on competition.id = fixture.competition_id").
 		Joins("left join country on country.id = competition.country_id").
 		Where("fixture.date > ?", time.Now().AddDate(0, 0, -DefaultDaysInPast)).
@@ -104,6 +106,7 @@ func getHydratedFixturesForUser(user *bot.User) []league.Fixture {
 		Preload("AwayTeam").
 		Preload("Competition").
 		Preload("Competition.Country").
+		Select("fixture.*, CASE WHEN EXISTS(?) THEN true ELSE false END AS has_user_alert", subquery).
 		Order("fixture.date ASC")
 	if len(user.GetDisabledCountries()) > 0 {
 		query = query.Not("country_id", user.GetDisabledCountries())

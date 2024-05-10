@@ -21,4 +21,5 @@ type Fixture struct {
 	PenaltyAway   int                  `gorm:"type:int"`
 	Date          time.Time            `gorm:"type:timestamp"`
 	UpdatedAt     time.Time            `gorm:"type:timestamp"`
+	HasUserAlert  bool                 `gorm:"column:has_user_alert"`
 }

@@ -194,13 +194,27 @@ func remove(slice []models.InlineKeyboardButton, i int) []models.InlineKeyboardB
 }
 
 func generateFixtureButtonText(user model.User, fixture manager.FixtureView) string {
+	var icon string
 	score := fixture.Score
-	if fixture.Status.IsFinished() && !user.EnableSpoilers {
-		score = "🙈 : 🙈"
+
+	if fixture.Status.IsFinished() {
+		if user.EnableSpoilers {
+			icon = "🙉"
+			score = "? : ?"
+		} else {
+			icon = "🙈"
+		}
+	} else {
+		if fixture.HasAlert {
+			icon = "🔕"
+		} else {
+			icon = "🔔"
+		}
 	}
 
 	buttonText := fmt.Sprintf(
-		"%s %s : %s %s",
+		"%s %s %s : %s %s",
+		icon,
 		fixture.Date.Format(TimeFormat),
 		fixture.HomeTeamName,
 		score,
@@ -209,7 +223,8 @@ func generateFixtureButtonText(user model.User, fixture manager.FixtureView) str
 
 	if len(buttonText) > keyboardButtonTextLength && fixture.HomeTeamCode != "" && fixture.AwayTeamCode != "" {
 		buttonText = fmt.Sprintf(
-			"%s %s %s %s",
+			"%s %s %s %s %s",
+			icon,
 			fixture.Date.Format(TimeFormat),
 			fixture.HomeTeamCode,
 			score,
