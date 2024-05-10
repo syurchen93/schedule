@@ -20,6 +20,8 @@ const (
 	CbdSchedule                  = "schedule"
 	CbdSetLang                   = "set_lang_"
 	CbdToggleAlert               = "alert_toggle_"
+
+	keyboardButtonTextLength = 30
 )
 
 var TimeFormat = "Mon 2.01 15:04"
@@ -62,13 +64,7 @@ func GetFixturesKeyboardForUser(user model.User, fixtures []manager.FixtureView)
 	for _, fixture := range fixtures {
 		keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{
 			{
-				Text: fmt.Sprintf(
-					"%s %s %s %s",
-					fixture.Date.Format(TimeFormat),
-					fixture.HomeTeamName,
-					fixture.Score,
-					fixture.AwayTeamName,
-				),
+				Text:         generateFixtureButtonText(user, fixture),
 				CallbackData: fmt.Sprintf("%s%d", CbdToggleAlert, fixture.ID),
 			},
 		})
@@ -195,4 +191,31 @@ func remove(slice []models.InlineKeyboardButton, i int) []models.InlineKeyboardB
 	slice = slice[:len(slice)-1]
 
 	return slice
+}
+
+func generateFixtureButtonText(user model.User, fixture manager.FixtureView) string {
+	score := fixture.Score
+	if fixture.Status.IsFinished() && !user.EnableSpoilers {
+		score = "🙈 : 🙈"
+	}
+
+	buttonText := fmt.Sprintf(
+		"%s %s : %s %s",
+		fixture.Date.Format(TimeFormat),
+		fixture.HomeTeamName,
+		score,
+		fixture.AwayTeamName,
+	)
+
+	if len(buttonText) > keyboardButtonTextLength && fixture.HomeTeamCode != "" && fixture.AwayTeamCode != "" {
+		buttonText = fmt.Sprintf(
+			"%s %s %s %s",
+			fixture.Date.Format(TimeFormat),
+			fixture.HomeTeamCode,
+			score,
+			fixture.AwayTeamCode,
+		)
+	}
+
+	return buttonText
 }

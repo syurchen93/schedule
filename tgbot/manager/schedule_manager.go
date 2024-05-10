@@ -19,11 +19,17 @@ type CompetitionFixtures struct {
 type FixtureView struct {
 	ID           int
 	HomeTeamName string
+	HomeTeamCode string
 	AwayTeamName string
+	AwayTeamCode string
 	Date         time.Time
 	Score        string
+	Status       common.FixtureStatus
 	HasAlert     bool
 }
+
+const DefaultDaysInFuture = 7
+const DefaultDaysInPast = 7
 
 func GetCompetitionFixturesForUser(user *bot.User) []CompetitionFixtures {
 	var fixturesByComp []CompetitionFixtures
@@ -61,6 +67,7 @@ func createFixtureView(fixture league.Fixture) FixtureView {
 		AwayTeamName: fixture.AwayTeam.Name,
 		Date:         fixture.Date,
 		Score:        generateScoreString(fixture),
+		Status:       fixture.Status,
 	}
 }
 
@@ -91,12 +98,13 @@ func getHydratedFixturesForUser(user *bot.User) []league.Fixture {
 	var fixtures []league.Fixture
 	query := dbGorm.Joins("left join competition on competition.id = fixture.competition_id").
 		Joins("left join country on country.id = competition.country_id").
-		Where("fixture.date > ?", time.Now()).
+		Where("fixture.date > ?", time.Now().AddDate(0, 0, -DefaultDaysInPast)).
+		Where("fixture.date < ?", time.Now().AddDate(0, 0, DefaultDaysInFuture)).
 		Preload("HomeTeam").
 		Preload("AwayTeam").
 		Preload("Competition").
-		Preload("Competition.Country")
-
+		Preload("Competition.Country").
+		Order("fixture.date ASC")
 	if len(user.GetDisabledCountries()) > 0 {
 		query = query.Not("country_id", user.GetDisabledCountries())
 	}
