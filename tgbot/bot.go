@@ -38,9 +38,10 @@ func main() {
 		bot.WithCallbackQueryDataHandler(template.CbdSettings, bot.MatchTypeExact, settingsGeneralHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsCountry, bot.MatchTypeExact, settingsCountryHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsCountryToggle, bot.MatchTypePrefix, settingsCountryToggleHandler),
-		bot.WithCallbackQueryDataHandler(template.CbdSettingsCompetition, bot.MatchTypeExact, SettingsCompetitionHandler),
+		bot.WithCallbackQueryDataHandler(template.CbdSettingsCompetition, bot.MatchTypeExact, settingsCompetitionHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsCompetitionToggle, bot.MatchTypePrefix, settingsCompetitionToggleHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdSchedule, bot.MatchTypeExact, scheduleHandler),
+		bot.WithCallbackQueryDataHandler(template.CbdFixtureToggle, bot.MatchTypePrefix, fixtureToggleHandler),
 	}
 
 	b, err := bot.New(util.GetEnv("TELEGRAM_BOT_TOKEN"), opts...)
@@ -49,6 +50,30 @@ func main() {
 	}
 
 	b.Start(ctx)
+}
+
+func fixtureToggleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	answerCallbackQuery(ctx, b, update)
+
+	user := manager.GetOrCreateUser(ctx, b, update)
+	fixtureId, err := strconv.Atoi(update.CallbackQuery.Data[len(template.CbdFixtureToggle):])
+	if nil != err {
+		panic(err)
+	}
+
+	competitionFixtures := manager.GetCompetitionFixturesAndToggleByFixtureId(user, fixtureId)
+	success, err := b.EditMessageReplyMarkup(ctx, &bot.EditMessageReplyMarkupParams{
+		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
+		MessageID: update.CallbackQuery.Message.Message.ID,
+		ReplyMarkup: template.GetFixturesKeyboardForUser(
+			*user,
+			competitionFixtures.Fixtures,
+		),
+	})
+	if nil != err {
+		panic(err)
+	}
+	checkIfSuccessfulMessageEdit(ctx, b, update, success)
 }
 
 func scheduleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
@@ -95,7 +120,7 @@ func settingsCompetitionToggleHandler(ctx context.Context, b *bot.Bot, update *m
 	checkIfSuccessfulMessageEdit(ctx, b, update, success)
 }
 
-func SettingsCompetitionHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+func settingsCompetitionHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	answerCallbackQuery(ctx, b, update)
 
 	user := manager.GetOrCreateUser(ctx, b, update)

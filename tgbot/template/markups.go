@@ -19,7 +19,7 @@ const (
 	CbdSettings                  = "settings"
 	CbdSchedule                  = "schedule"
 	CbdSetLang                   = "set_lang_"
-	CbdToggleAlert               = "alert_toggle_"
+	CbdFixtureToggle             = "fixture_toggle_"
 
 	keyboardButtonTextLength = 30
 )
@@ -65,7 +65,7 @@ func GetFixturesKeyboardForUser(user model.User, fixtures []manager.FixtureView)
 		keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{
 			{
 				Text:         generateFixtureButtonText(user, fixture),
-				CallbackData: fmt.Sprintf("%s%d", CbdToggleAlert, fixture.ID),
+				CallbackData: fmt.Sprintf("%s%d", CbdFixtureToggle, fixture.ID),
 			},
 		})
 	}
@@ -195,21 +195,32 @@ func remove(slice []models.InlineKeyboardButton, i int) []models.InlineKeyboardB
 
 func generateFixtureButtonText(user model.User, fixture manager.FixtureView) string {
 	var icon string
+	var toggleIcon string
 	score := fixture.Score
+	toggleScore := score
 
 	if fixture.Status.IsFinished() {
 		if user.EnableSpoilers {
 			icon = "🙉"
+			toggleIcon = "✔️"
 			score = "? : ?"
 		} else {
-			icon = "🙈"
+			icon = "✔️"
+			toggleIcon = "🙉"
+			toggleScore = "? : ?"
 		}
 	} else {
 		if fixture.HasAlert {
 			icon = "🔕"
+			toggleIcon = "🔔"
 		} else {
 			icon = "🔔"
+			toggleIcon = "🔕"
 		}
+	}
+	if fixture.IsToggled {
+		icon = toggleIcon
+		score = toggleScore
 	}
 
 	buttonText := fmt.Sprintf(

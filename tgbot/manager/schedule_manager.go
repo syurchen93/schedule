@@ -26,6 +26,7 @@ type FixtureView struct {
 	Score        string
 	Status       common.FixtureStatus
 	HasAlert     bool
+	IsToggled    bool
 }
 
 const DefaultDaysInFuture = 7
@@ -58,6 +59,44 @@ func GetCompetitionFixturesForUser(user *bot.User) []CompetitionFixtures {
 	}
 
 	return fixturesByComp
+}
+
+func GetCompetitionFixturesAndToggleByFixtureId(user *bot.User, fixtureId int) CompetitionFixtures {
+	var wantedComp CompetitionFixtures
+	var wantedFixture FixtureView
+	competitionFixtures := GetCompetitionFixturesForUser(user)
+	for _, comp := range competitionFixtures {
+		for i, fixture := range comp.Fixtures {
+			if fixture.ID == fixtureId {
+				wantedFixture = fixture
+				wantedComp = comp
+				wantedComp.Fixtures[i].IsToggled = true
+				break
+			}
+		}
+	}
+	if wantedFixture.ID == 0 {
+		panic(fmt.Errorf("fixture with id %d not found", fixtureId))
+	}
+	if !wantedFixture.Status.IsFinished() {
+		createOrDeleteAlertForFixture(user, wantedFixture.ID)
+	}
+
+	return wantedComp
+}
+
+func createOrDeleteAlertForFixture(user *bot.User, fixtureId int) {
+	alert := bot.Alert{
+		UserID:     uint(user.ID),
+		FixtureID:  uint(fixtureId),
+		TimeBefore: user.AlertOffset,
+	}
+	dbGorm.Where("user_id = ? AND fixture_id = ?", user.ID, fixtureId).First(&alert)
+	if alert.ID == 0 {
+		dbGorm.Create(&alert)
+	} else {
+		dbGorm.Delete(&alert)
+	}
 }
 
 func createFixtureView(fixture league.Fixture) FixtureView {

@@ -15,6 +15,7 @@ type User struct {
 	DisabledCountries    datatypes.JSON `gorm:"type:json"`
 	DisabledCompetitions datatypes.JSON `gorm:"type:json"`
 	EnableSpoilers       bool           `gorm:"type:boolean;default:false"`
+	AlertOffset          int            `gorm:"type:int;default:1800"`
 }
 
 func (u *User) GetDisabledCountries() []int {
