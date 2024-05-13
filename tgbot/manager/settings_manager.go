@@ -22,7 +22,7 @@ type CompetitionSettings struct {
 }
 
 var CountryEmojiMap = map[string]string{
-	"England": "\U0001F3F4",
+	"England": "\U0001F3F4\U000E0067\U000E0062\U000E0065\U000E006E\U000E0067\U000E007F",
 	"Germany": "\U0001F1E9\U0001F1EA",
 	"Spain":   "\U0001F1EA\U0001F1F8",
 	"France":  "\U0001F1EB\U0001F1F7",
