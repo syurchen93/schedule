@@ -6,9 +6,11 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"time"
 
 	"gorm.io/gorm"
 
+	timer "atomicgo.dev/schedule"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 
@@ -17,6 +19,8 @@ import (
 	"schedule/tgbot/template"
 	"schedule/util"
 )
+
+const AlertInterval = 60
 
 var dbGorm *gorm.DB
 var defaultLocale = "en"
@@ -48,6 +52,10 @@ func main() {
 	if nil != err {
 		panic(err)
 	}
+
+	timer.Every(AlertInterval*time.Second, func() bool {
+		return manager.GetAndFireAlerts(ctx, b)
+	})
 
 	b.Start(ctx)
 }

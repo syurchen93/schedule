@@ -15,6 +15,7 @@ require (
 )
 
 require (
+	atomicgo.dev/schedule v0.1.0
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/BurntSushi/toml v1.3.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect

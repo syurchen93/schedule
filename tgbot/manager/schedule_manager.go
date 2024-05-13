@@ -85,20 +85,6 @@ func GetCompetitionFixturesAndToggleByFixtureId(user *bot.User, fixtureId int) C
 	return wantedComp
 }
 
-func createOrDeleteAlertForFixture(user *bot.User, fixtureId int) {
-	alert := bot.Alert{
-		UserID:     uint(user.ID),
-		FixtureID:  uint(fixtureId),
-		TimeBefore: user.AlertOffset,
-	}
-	dbGorm.Where("user_id = ? AND fixture_id = ?", user.ID, fixtureId).First(&alert)
-	if alert.ID == 0 {
-		dbGorm.Create(&alert)
-	} else {
-		dbGorm.Delete(&alert)
-	}
-}
-
 func createFixtureView(fixture league.Fixture) FixtureView {
 	return FixtureView{
 		ID:           fixture.ID,
