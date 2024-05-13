@@ -93,9 +93,10 @@ func scheduleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 	for _, comp := range competitionFixtures {
 		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID:      update.CallbackQuery.Message.Message.Chat.ID,
-			Text:        fmt.Sprintf("%s %s", manager.GetCountryEmoji(comp.CountryName), comp.CompName),
-			ReplyMarkup: template.GetFixturesKeyboardForUser(*user, comp.Fixtures),
+			ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
+			Text:                fmt.Sprintf("%s %s", manager.GetCountryEmoji(comp.CountryName), comp.CompName),
+			DisableNotification: true,
+			ReplyMarkup:         template.GetFixturesKeyboardForUser(*user, comp.Fixtures),
 		})
 		if nil != err {
 			panic(err)
@@ -142,8 +143,9 @@ func settingsCompetitionHandler(ctx context.Context, b *bot.Bot, update *models.
 	}
 
 	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.CallbackQuery.Message.Message.Chat.ID,
-		Text:   util.Translate(user.Locale, baseMessageKey),
+		ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
+		DisableNotification: true,
+		Text:                util.Translate(user.Locale, baseMessageKey),
 	})
 	if nil != err {
 		panic(err)
@@ -151,8 +153,9 @@ func settingsCompetitionHandler(ctx context.Context, b *bot.Bot, update *models.
 
 	for _, country := range userCountries {
 		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.CallbackQuery.Message.Message.Chat.ID,
-			Text:   manager.GetCountryWithEmoji(country.Name),
+			DisableNotification: true,
+			ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
+			Text:                manager.GetCountryWithEmoji(country.Name),
 			ReplyMarkup: template.GetUserCompetitonSettingsKyboard(
 				user,
 				manager.GetUserCountryCompetitionSettings(user, country.ID),
@@ -197,9 +200,10 @@ func settingsCountryHandler(ctx context.Context, b *bot.Bot, update *models.Upda
 	userCountrySettings := manager.GetUserCountrySettings(user)
 
 	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID:      update.CallbackQuery.Message.Message.Chat.ID,
-		Text:        transateForUpdateUser("SettingsCountryHeader", update),
-		ReplyMarkup: template.GetUserCountrySettingsKyboard(user, userCountrySettings),
+		DisableNotification: true,
+		ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
+		Text:                transateForUpdateUser("SettingsCountryHeader", update),
+		ReplyMarkup:         template.GetUserCountrySettingsKyboard(user, userCountrySettings),
 	})
 	if nil != err {
 		panic(err)
@@ -212,9 +216,10 @@ func settingsGeneralHandler(ctx context.Context, b *bot.Bot, update *models.Upda
 	user := manager.GetOrCreateUser(ctx, b, update)
 
 	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID:      update.CallbackQuery.Message.Message.Chat.ID,
-		Text:        transateForUpdateUser("SettingsGeneral", update),
-		ReplyMarkup: template.TranslateKeyboardForUser(*user, template.KeyboardSettingsGeneral),
+		DisableNotification: true,
+		ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
+		Text:                transateForUpdateUser("SettingsGeneral", update),
+		ReplyMarkup:         template.TranslateKeyboardForUser(*user, template.KeyboardSettingsGeneral),
 	})
 	if nil != err {
 		panic(err)
@@ -233,9 +238,10 @@ func setLocaleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 
 	_, err = b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID:      update.CallbackQuery.Message.Message.Chat.ID,
-		Text:        transateForUpdateUser("Greetings", update),
-		ReplyMarkup: template.GetLanguageSelectKeyboardForUser(*manager.GetCurrentUser()),
+		DisableNotification: true,
+		ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
+		Text:                transateForUpdateUser("Greetings", update),
+		ReplyMarkup:         template.GetLanguageSelectKeyboardForUser(*manager.GetCurrentUser()),
 	})
 	if nil != err {
 		panic(err)
@@ -248,9 +254,10 @@ func defaultHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	user := manager.GetOrCreateUser(ctx, b, update)
 
 	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID:      update.CallbackQuery.Message.Message.Chat.ID,
-		Text:        transateForUpdateUser("Greetings", update),
-		ReplyMarkup: template.GetLanguageSelectKeyboardForUser(*user),
+		DisableNotification: true,
+		ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
+		Text:                transateForUpdateUser("Greetings", update),
+		ReplyMarkup:         template.GetLanguageSelectKeyboardForUser(*user),
 	})
 	if nil != err {
 		panic(err)
