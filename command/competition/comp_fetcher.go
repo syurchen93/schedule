@@ -13,6 +13,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"schedule/db"
 	model "schedule/model/league"
+	"schedule/tgbot/manager"
 	"schedule/util"
 	"schedule/util/transformer"
 )
@@ -50,7 +51,7 @@ func fetchAndPersistCompetitions() {
 
 	// Update World to be the first country to be processed to not overwrite others
 	for i, country := range countries {
-		if country.Name == "World" {
+		if country.Name == manager.WorldName {
 			countries[0], countries[i] = countries[i], countries[0]
 			break
 		}
