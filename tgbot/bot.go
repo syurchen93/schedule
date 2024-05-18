@@ -35,7 +35,7 @@ func main() {
 
 	util.InitTranslator("tgbot/translation", supportedLocales)
 	manager.Init(dbGorm, defaultLocale, supportedLocales)
-	util.InitCache()
+	util.InitCache(time.Hour, 10_000)
 
 	opts := []bot.Option{
 		bot.WithDefaultHandler(defaultHandler),

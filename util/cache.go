@@ -16,14 +16,14 @@ type CacheInterface interface {
 
 var cachePool CacheInterface
 
-func InitCache() {
+func InitCache(ttl time.Duration, size int) {
 	var err error
-	cachePool, err = otter.MustBuilder[string, string](10_000).
+	cachePool, err = otter.MustBuilder[string, string](size).
 		CollectStats().
 		Cost(func(key string, value string) uint32 {
 			return 1
 		}).
-		WithTTL(time.Hour).
+		WithTTL(ttl).
 		Build()
 
 	if err != nil {
@@ -36,8 +36,6 @@ func GetCacheItem(key string, v interface{}) error {
 	if !found {
 		return fmt.Errorf("key not found in cache")
 	}
-
-	fmt.Println("Value from cache:", value)
 
 	err := json.Unmarshal([]byte(value), v)
 	if err != nil {
