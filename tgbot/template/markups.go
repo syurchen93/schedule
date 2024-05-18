@@ -59,6 +59,19 @@ var ButtonSchedule = models.InlineKeyboardButton{
 	CallbackData: CbdSchedule,
 }
 
+var ButtonRefreshSchedule = models.InlineKeyboardButton{
+	Text:         "RefreshSchedule",
+	CallbackData: CbdSchedule,
+}
+
+func AppendTranslatedButtonToKeyboard(keyboard *models.InlineKeyboardMarkup, button models.InlineKeyboardButton, user model.User) {
+	AppendButtonToKeyboard(keyboard, translateButtonForUser(user, button))
+}
+
+func AppendButtonToKeyboard(keyboard *models.InlineKeyboardMarkup, button models.InlineKeyboardButton) {
+	keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{button})
+}
+
 func GetFixturesKeyboardForUser(user model.User, fixtures []manager.FixtureView) *models.InlineKeyboardMarkup {
 	keyboard := &models.InlineKeyboardMarkup{}
 	for _, fixture := range fixtures {
@@ -69,10 +82,6 @@ func GetFixturesKeyboardForUser(user model.User, fixtures []manager.FixtureView)
 			},
 		})
 	}
-
-	keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{
-		translateButtonForUser(user, ButtonSettings),
-	})
 
 	return keyboard
 }

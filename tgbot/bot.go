@@ -91,12 +91,17 @@ func scheduleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 	competitionFixtures := manager.GetCompetitionFixturesForUser(user)
 
-	for _, comp := range competitionFixtures {
+	for i, comp := range competitionFixtures {
+		replyMarkup := template.GetFixturesKeyboardForUser(*user, comp.Fixtures)
+		if i == len(competitionFixtures)-1 {
+			template.AppendTranslatedButtonToKeyboard(replyMarkup, template.ButtonSettings, *user)
+			template.AppendTranslatedButtonToKeyboard(replyMarkup, template.ButtonRefreshSchedule, *user)
+		}
 		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
 			Text:                fmt.Sprintf("%s %s", manager.GetCountryEmoji(comp.CountryName), comp.CompName),
 			DisableNotification: true,
-			ReplyMarkup:         template.GetFixturesKeyboardForUser(*user, comp.Fixtures),
+			ReplyMarkup:         replyMarkup,
 		})
 		if nil != err {
 			panic(err)
