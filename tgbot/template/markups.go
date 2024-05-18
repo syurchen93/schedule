@@ -5,6 +5,7 @@ import (
 	model "schedule/model/bot"
 	"schedule/tgbot/manager"
 	"schedule/util"
+	"strconv"
 	"strings"
 
 	"github.com/go-telegram/bot/models"
@@ -84,6 +85,25 @@ func GetFixturesKeyboardForUser(user model.User, fixtures []manager.FixtureView)
 	}
 
 	return keyboard
+}
+
+func ToggleFixtureOnCachedKeyboard(user model.User, fixture manager.FixtureView, originalKeyboard models.InlineKeyboardMarkup) *models.InlineKeyboardMarkup {
+	keyboard := originalKeyboard
+	for i, row := range keyboard.InlineKeyboard {
+		for j, button := range row {
+			if checkButtonBelongsToFixture(button, fixture) {
+				newText := generateFixtureButtonText(user, fixture)
+				if newText == button.Text {
+					fixture.IsToggled = !fixture.IsToggled
+					newText = generateFixtureButtonText(user, fixture)
+				}
+				keyboard.InlineKeyboard[i][j].Text = newText
+				break
+			}
+		}
+	}
+
+	return &keyboard
 }
 
 func GetUserCompetitonSettingsKyboard(user *model.User, compSettings []manager.CompetitionSettings) *models.InlineKeyboardMarkup {
@@ -253,4 +273,8 @@ func generateFixtureButtonText(user model.User, fixture manager.FixtureView) str
 	}
 
 	return buttonText
+}
+
+func checkButtonBelongsToFixture(button models.InlineKeyboardButton, fixture manager.FixtureView) bool {
+	return strings.HasSuffix(button.CallbackData, strconv.Itoa(fixture.ID))
 }

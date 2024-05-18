@@ -6,12 +6,18 @@ require (
 	github.com/go-telegram/bot v1.2.2
 	github.com/joho/godotenv v1.5.1
 	github.com/kataras/i18n v0.0.8
+	github.com/maypok86/otter v1.2.1
 	github.com/stretchr/testify v1.9.0
 	github.com/syurchen93/api-football-client v0.0.0-20240427135740-702d5d8f7e83
 	github.com/urfave/cli/v2 v2.27.2
 	gorm.io/datatypes v1.2.0
 	gorm.io/driver/mysql v1.5.6
 	gorm.io/gorm v1.25.10
+)
+
+require (
+	github.com/dolthub/maphash v0.1.0 // indirect
+	github.com/gammazero/deque v0.2.1 // indirect
 )
 
 require (

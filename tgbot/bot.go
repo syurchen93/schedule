@@ -35,6 +35,7 @@ func main() {
 
 	util.InitTranslator("tgbot/translation", supportedLocales)
 	manager.Init(dbGorm, defaultLocale, supportedLocales)
+	util.InitCache()
 
 	opts := []bot.Option{
 		bot.WithDefaultHandler(defaultHandler),
@@ -61,6 +62,8 @@ func main() {
 }
 
 func fixtureToggleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	var editedKeyboard *models.InlineKeyboardMarkup
+
 	answerCallbackQuery(ctx, b, update)
 
 	user := manager.GetOrCreateUser(ctx, b, update)
@@ -69,19 +72,30 @@ func fixtureToggleHandler(ctx context.Context, b *bot.Bot, update *models.Update
 		panic(err)
 	}
 
-	competitionFixtures := manager.GetCompetitionFixturesAndToggleByFixtureId(user, fixtureId)
-	success, err := b.EditMessageReplyMarkup(ctx, &bot.EditMessageReplyMarkupParams{
-		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
-		MessageID: update.CallbackQuery.Message.Message.ID,
-		ReplyMarkup: template.GetFixturesKeyboardForUser(
+	originalMsg := manager.GetCachedBotMessage(update.CallbackQuery.Message.Message.ID)
+	if originalMsg.ID == 0 {
+		competitionFixtures := manager.GetCompetitionFixturesAndToggleByFixtureId(user, fixtureId)
+		editedKeyboard = template.GetFixturesKeyboardForUser(
 			*user,
 			competitionFixtures.Fixtures,
-		),
+		)
+	} else {
+		fmt.Println("Using cached message")
+		fixtureView := manager.GetSndToggleFixtureViewByFixtureId(user, fixtureId)
+		editedKeyboard = template.ToggleFixtureOnCachedKeyboard(*user, fixtureView, originalMsg.ReplyMarkup)
+	}
+
+	msg, err := b.EditMessageReplyMarkup(ctx, &bot.EditMessageReplyMarkupParams{
+		ChatID:      update.CallbackQuery.Message.Message.Chat.ID,
+		MessageID:   update.CallbackQuery.Message.Message.ID,
+		ReplyMarkup: editedKeyboard,
 	})
 	if nil != err {
 		panic(err)
 	}
-	checkIfSuccessfulMessageEdit(ctx, b, update, success)
+	checkIfSuccessfulMessageEdit(ctx, b, update, msg)
+
+	manager.CacheBotMessage(msg)
 }
 
 func scheduleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
@@ -97,7 +111,7 @@ func scheduleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 			template.AppendTranslatedButtonToKeyboard(replyMarkup, template.ButtonSettings, *user)
 			template.AppendTranslatedButtonToKeyboard(replyMarkup, template.ButtonRefreshSchedule, *user)
 		}
-		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+		msg, err := b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
 			Text:                fmt.Sprintf("%s %s", manager.GetCountryEmoji(comp.CountryName), comp.CompName),
 			DisableNotification: true,
@@ -106,6 +120,7 @@ func scheduleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		if nil != err {
 			panic(err)
 		}
+		manager.CacheBotMessage(msg)
 	}
 }
 
@@ -166,6 +181,7 @@ func settingsCompetitionHandler(ctx context.Context, b *bot.Bot, update *models.
 				manager.GetUserCountryCompetitionSettings(user, country.ID),
 			),
 		})
+
 		if nil != err {
 			panic(err)
 		}

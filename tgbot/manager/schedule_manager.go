@@ -78,11 +78,28 @@ func GetCompetitionFixturesAndToggleByFixtureId(user *bot.User, fixtureId int) C
 	if wantedFixture.ID == 0 {
 		panic(fmt.Errorf("fixture with id %d not found", fixtureId))
 	}
-	if !wantedFixture.Status.IsFinished() {
-		createOrDeleteAlertForFixture(user, wantedFixture.ID)
-	}
+	toggleFixtureViewAlertIfNeeded(user, wantedFixture)
 
 	return wantedComp
+}
+
+func GetSndToggleFixtureViewByFixtureId(user *bot.User, fixtureId int) FixtureView {
+	var fixture league.Fixture
+	dbGorm.
+		Preload("HomeTeam").
+		Preload("AwayTeam").
+		Preload("Competition").
+		Preload("Competition.Country").
+		First(&fixture, fixtureId)
+
+	if fixture.ID == 0 {
+		panic(fmt.Errorf("fixture with id %d not found", fixtureId))
+	}
+	view := createFixtureView(fixture)
+	view.IsToggled = true
+	toggleFixtureViewAlertIfNeeded(user, view)
+
+	return view
 }
 
 func createFixtureView(fixture league.Fixture) FixtureView {
@@ -143,4 +160,10 @@ func getHydratedFixturesForUser(user *bot.User) []league.Fixture {
 
 	query.Find(&fixtures)
 	return fixtures
+}
+
+func toggleFixtureViewAlertIfNeeded(user *bot.User, fixture FixtureView) {
+	if !fixture.Status.IsFinished() {
+		createOrDeleteAlertForFixture(user, fixture.ID)
+	}
 }
