@@ -75,6 +75,7 @@ func standingsHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
 		Text:                template.CreateCompetitionStandingsMessage(standings),
 		DisableNotification: true,
+		ParseMode:           models.ParseModeMarkdown,
 		//ReplyMarkup:         replyMarkup,
 	})
 

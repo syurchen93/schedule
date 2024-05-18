@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/go-telegram/bot/models"
+	"github.com/olekukonko/tablewriter"
 )
 
 const (
@@ -67,25 +68,33 @@ var ButtonRefreshSchedule = models.InlineKeyboardButton{
 }
 
 func CreateCompetitionStandingsMessage(standings []manager.StandingsData) string {
-	var message string
+	var builder strings.Builder
 	for _, group := range standings {
-		message += fmt.Sprintf("**%s**\n", group.GroupName)
+		var tableData [][]string
+		builder.WriteString(fmt.Sprintf("**%s**\n", group.GroupName))
 		for _, standing := range group.Standings {
-			message += fmt.Sprintf(
-				"%d. %s %d %d %d %d %d %s\n",
-				standing.Position,
+			row := []string{
+				fmt.Sprintf("%d", standing.Position),
 				standing.TeamName,
-				standing.Points,
-				standing.Won,
-				standing.Drawn,
-				standing.Lost,
-				standing.GoalsDiff,
+				fmt.Sprintf("%d", standing.Points),
+				fmt.Sprintf("%d", standing.Won),
+				fmt.Sprintf("%d", standing.Drawn),
+				fmt.Sprintf("%d", standing.Lost),
+				fmt.Sprintf("%d", standing.GoalsDiff),
 				standing.Form,
-			)
+			}
+			tableData = append(tableData, row)
 		}
+		table := tablewriter.NewWriter(&builder)
+		table.SetHeader([]string{"R", "Team", "P", "W", "D", "L", "GD", "Form"})
+		table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
+		table.SetColumnSeparator("\\|")
+		table.SetCenterSeparator("\\*")
+		table.AppendBulk(tableData)
+		table.Render()
 	}
 
-	return message
+	return strings.ReplaceAll(builder.String(), "-", "\\-")
 }
 
 func AppendTranslatedButtonToKeyboard(keyboard *models.InlineKeyboardMarkup, button models.InlineKeyboardButton, user model.User) {
