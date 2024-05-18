@@ -47,6 +47,7 @@ func main() {
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsCompetitionToggle, bot.MatchTypePrefix, settingsCompetitionToggleHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdSchedule, bot.MatchTypeExact, scheduleHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdFixtureToggle, bot.MatchTypePrefix, fixtureToggleHandler),
+		bot.WithCallbackQueryDataHandler(template.CbdShowStandings, bot.MatchTypePrefix, standingsHandler),
 	}
 
 	b, err := bot.New(util.GetEnv("TELEGRAM_BOT_TOKEN"), opts...)
@@ -59,6 +60,27 @@ func main() {
 	})
 
 	b.Start(ctx)
+}
+
+func standingsHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	answerCallbackQuery(ctx, b, update)
+
+	compId, err := strconv.Atoi(update.CallbackQuery.Data[len(template.CbdShowStandings):])
+	if nil != err {
+		panic(err)
+	}
+	standings := manager.GetCachedCompetitionStandings(uint(compId))
+
+	_, err = b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
+		Text:                template.CreateCompetitionStandingsMessage(standings),
+		DisableNotification: true,
+		//ReplyMarkup:         replyMarkup,
+	})
+
+	if nil != err {
+		panic(err)
+	}
 }
 
 func fixtureToggleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
@@ -75,13 +97,13 @@ func fixtureToggleHandler(ctx context.Context, b *bot.Bot, update *models.Update
 	originalMsg := manager.GetCachedBotMessage(update.CallbackQuery.Message.Message.ID)
 	if originalMsg.ID == 0 {
 		competitionFixtures := manager.GetCompetitionFixturesAndToggleByFixtureId(user, fixtureId)
-		editedKeyboard = template.GetFixturesKeyboardForUser(
+		editedKeyboard = template.GetCompetitionFixturesKeyboardForUser(
 			*user,
-			competitionFixtures.Fixtures,
+			competitionFixtures,
 		)
 	} else {
 		fmt.Println("Using cached message")
-		fixtureView := manager.GetSndToggleFixtureViewByFixtureId(user, fixtureId)
+		fixtureView := manager.GetToggleFixtureViewByFixtureId(user, fixtureId)
 		editedKeyboard = template.ToggleFixtureOnCachedKeyboard(*user, fixtureView, originalMsg.ReplyMarkup)
 	}
 
@@ -103,17 +125,17 @@ func scheduleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 	user := manager.GetOrCreateUser(ctx, b, update)
 
-	competitionFixtures := manager.GetCompetitionFixturesForUser(user)
+	competitions := manager.GetCompetitionViewsForUser(user)
 
-	for i, comp := range competitionFixtures {
-		replyMarkup := template.GetFixturesKeyboardForUser(*user, comp.Fixtures)
-		if i == len(competitionFixtures)-1 {
+	for i, compView := range competitions {
+		replyMarkup := template.GetCompetitionFixturesKeyboardForUser(*user, compView)
+		if i == len(competitions)-1 {
 			template.AppendTranslatedButtonToKeyboard(replyMarkup, template.ButtonSettings, *user)
 			template.AppendTranslatedButtonToKeyboard(replyMarkup, template.ButtonRefreshSchedule, *user)
 		}
 		msg, err := b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
-			Text:                fmt.Sprintf("%s %s", manager.GetCountryEmoji(comp.CountryName), comp.CompName),
+			Text:                fmt.Sprintf("%s %s", manager.GetCountryEmoji(compView.CountryName), compView.CompName),
 			DisableNotification: true,
 			ReplyMarkup:         replyMarkup,
 		})

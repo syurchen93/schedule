@@ -19,6 +19,7 @@ const (
 	CbdSettingsAlert             = "settings_alert"
 	CbdSettings                  = "settings"
 	CbdSchedule                  = "schedule"
+	CbdShowStandings             = "standings_"
 	CbdSetLang                   = "set_lang_"
 	CbdFixtureToggle             = "fixture_toggle_"
 
@@ -65,6 +66,28 @@ var ButtonRefreshSchedule = models.InlineKeyboardButton{
 	CallbackData: CbdSchedule,
 }
 
+func CreateCompetitionStandingsMessage(standings []manager.StandingsData) string {
+	var message string
+	for _, group := range standings {
+		message += fmt.Sprintf("**%s**\n", group.GroupName)
+		for _, standing := range group.Standings {
+			message += fmt.Sprintf(
+				"%d. %s %d %d %d %d %d %s\n",
+				standing.Position,
+				standing.TeamName,
+				standing.Points,
+				standing.Won,
+				standing.Drawn,
+				standing.Lost,
+				standing.GoalsDiff,
+				standing.Form,
+			)
+		}
+	}
+
+	return message
+}
+
 func AppendTranslatedButtonToKeyboard(keyboard *models.InlineKeyboardMarkup, button models.InlineKeyboardButton, user model.User) {
 	AppendButtonToKeyboard(keyboard, translateButtonForUser(user, button))
 }
@@ -73,9 +96,18 @@ func AppendButtonToKeyboard(keyboard *models.InlineKeyboardMarkup, button models
 	keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{button})
 }
 
-func GetFixturesKeyboardForUser(user model.User, fixtures []manager.FixtureView) *models.InlineKeyboardMarkup {
+func GetCompetitionFixturesKeyboardForUser(user model.User, compView manager.CompetitionView) *models.InlineKeyboardMarkup {
 	keyboard := &models.InlineKeyboardMarkup{}
-	for _, fixture := range fixtures {
+
+	if len(compView.Standings) > 0 {
+		standingsButton := models.InlineKeyboardButton{
+			Text:         "ShowStandings",
+			CallbackData: fmt.Sprintf("%s%d", CbdShowStandings, compView.CompId),
+		}
+		keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{translateButtonForUser(user, standingsButton)})
+	}
+
+	for _, fixture := range compView.Fixtures {
 		keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{
 			{
 				Text:         generateFixtureButtonText(user, fixture),

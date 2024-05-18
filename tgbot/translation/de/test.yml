@@ -9,6 +9,7 @@ SettingsCountryHeader: "Hier können Sie auswählen, an welchen Ligen von welche
 SettingsCompetitionHeader: "Auswählen, an welchen Ligen Sie interessiert sind ✅ oder nicht interessiert sind ❌"
 SettingsCompetitionHeaderNoCountries: "Sie haben alle Länder deaktiviert. Jetzt haben Sie nichts verfügbar 🤷‍♂️"
 RefreshSchedule: "🔄 Aktualisieren"
+ShowStandings: "📊 Tabelle"
 Enable: "✅ Anzeigen"
 Disable: "❌ Verbergen"
 Back: "🔙 Zurück"

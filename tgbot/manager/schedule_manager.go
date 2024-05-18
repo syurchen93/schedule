@@ -9,11 +9,30 @@ import (
 	"github.com/syurchen93/api-football-client/common"
 )
 
-type CompetitionFixtures struct {
+type CompetitionView struct {
 	CompId      uint
 	CompName    string
 	CountryName string
 	Fixtures    []FixtureView
+	Standings   []StandingsData
+}
+
+type StandingsData struct {
+	GroupName string
+	Standings []StandingView
+}
+
+type StandingView struct {
+	TeamName    string
+	TeamCode    string
+	Position    int
+	Points      int
+	GoalsDiff   int
+	Form        string
+	Won         int
+	Drawn       int
+	Lost        int
+	Description string
 }
 
 type FixtureView struct {
@@ -32,8 +51,8 @@ type FixtureView struct {
 const DefaultDaysInFuture = 7
 const DefaultDaysInPast = 7
 
-func GetCompetitionFixturesForUser(user *bot.User) []CompetitionFixtures {
-	var fixturesByComp []CompetitionFixtures
+func GetCompetitionViewsForUser(user *bot.User) []CompetitionView {
+	var fixturesByComp []CompetitionView
 	fixtures := getHydratedFixturesForUser(user)
 	for _, fixture := range fixtures {
 		var compFound bool
@@ -47,24 +66,28 @@ func GetCompetitionFixturesForUser(user *bot.User) []CompetitionFixtures {
 			}
 		}
 		if !compFound {
-			fixturesByComp = append(fixturesByComp, CompetitionFixtures{
+			compView := CompetitionView{
 				CompId:      fixture.CompetitionID,
 				CompName:    fixture.Competition.Name,
 				CountryName: fixture.Competition.Country.Name,
 				Fixtures: []FixtureView{
 					fixtureView,
 				},
-			})
+			}
+			if !fixture.Competition.NoStandings {
+				compView.Standings = GetCachedCompetitionStandings(fixture.CompetitionID)
+			}
+			fixturesByComp = append(fixturesByComp, compView)
 		}
 	}
 
 	return fixturesByComp
 }
 
-func GetCompetitionFixturesAndToggleByFixtureId(user *bot.User, fixtureId int) CompetitionFixtures {
-	var wantedComp CompetitionFixtures
+func GetCompetitionFixturesAndToggleByFixtureId(user *bot.User, fixtureId int) CompetitionView {
+	var wantedComp CompetitionView
 	var wantedFixture FixtureView
-	competitionFixtures := GetCompetitionFixturesForUser(user)
+	competitionFixtures := GetCompetitionViewsForUser(user)
 	for _, comp := range competitionFixtures {
 		for i, fixture := range comp.Fixtures {
 			if fixture.ID == fixtureId {
@@ -83,7 +106,7 @@ func GetCompetitionFixturesAndToggleByFixtureId(user *bot.User, fixtureId int) C
 	return wantedComp
 }
 
-func GetSndToggleFixtureViewByFixtureId(user *bot.User, fixtureId int) FixtureView {
+func GetToggleFixtureViewByFixtureId(user *bot.User, fixtureId int) FixtureView {
 	var fixture league.Fixture
 	dbGorm.
 		Preload("HomeTeam").
@@ -165,5 +188,50 @@ func getHydratedFixturesForUser(user *bot.User) []league.Fixture {
 func toggleFixtureViewAlertIfNeeded(user *bot.User, fixture FixtureView) {
 	if !fixture.Status.IsFinished() {
 		createOrDeleteAlertForFixture(user, fixture.ID)
+	}
+}
+
+func getCompetitionStandings(standingsData *[]StandingsData, competitionId uint) {
+	var standings []league.Standing
+	dbGorm.
+		Table("standing as s").
+		Select("s.*, team.code").
+		Joins("join competition c on c.id = s.competition_id and c.current_season = s.season").
+		Joins("join team on team.id = s.team_id").
+		Joins("join ("+
+			"select `rank`, `group`, max(id) as max_id "+
+			"from standing "+
+			"group by `rank`, `group`"+
+			") as latest on latest.`rank` = s.`rank` and latest.`group` = s.`group` and latest.max_id = s.id").
+		Preload("Team").
+		Where("s.competition_id = ?", competitionId).
+		Order("s.rank ASC").
+		Find(&standings)
+
+	groupedStandings := make(map[string][]StandingView)
+	for _, standing := range standings {
+		standingsView := StandingView{
+			TeamName:    standing.Team.Name,
+			TeamCode:    *standing.Team.Code,
+			Position:    standing.Rank,
+			Points:      standing.Points,
+			GoalsDiff:   standing.GoalsDiff,
+			Form:        standing.Form,
+			Won:         standing.Won,
+			Drawn:       standing.Drawn,
+			Lost:        standing.Lost,
+			Description: standing.Description,
+		}
+
+		groupedStandings[standing.Group] = append(groupedStandings[standing.Group], standingsView)
+	}
+
+	for groupName, groupStandings := range groupedStandings {
+		standingData := StandingsData{
+			GroupName: groupName,
+			Standings: groupStandings,
+		}
+
+		*standingsData = append(*standingsData, standingData)
 	}
 }

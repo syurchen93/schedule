@@ -9,6 +9,7 @@ SettingsCountryHeader: "On this screen you can choose which countries' leagues y
 SettingsCompetitionHeader: "Select the competitions you are interested in ✅ or not interested in ❌"
 SettingsCompetitionHeaderNoCountries: "You have disabled all countries. Now you have nothing available 🤷‍♂️"
 RefreshSchedule: "🔄 Refresh"
+ShowStandings: "📊 Standings"
 Enable: "✅ Show"
 Disable: "❌ Hide"
 Back: "🔙 Back"
