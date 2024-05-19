@@ -3,6 +3,7 @@ module schedule
 go 1.21.6
 
 require (
+	github.com/fogleman/gg v1.3.0
 	github.com/go-telegram/bot v1.2.2
 	github.com/joho/godotenv v1.5.1
 	github.com/kataras/i18n v0.0.8
@@ -19,7 +20,9 @@ require (
 require (
 	github.com/dolthub/maphash v0.1.0 // indirect
 	github.com/gammazero/deque v0.2.1 // indirect
+	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
+	golang.org/x/image v0.0.0-20211028202545-6944b10bf410 // indirect
 )
 
 require (

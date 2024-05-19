@@ -36,6 +36,7 @@ func main() {
 	util.InitTranslator("tgbot/translation", supportedLocales)
 	manager.Init(dbGorm, defaultLocale, supportedLocales)
 	util.InitCache(time.Hour, 10_000)
+	manager.InitImageGenerator("tgbot/images/")
 
 	opts := []bot.Option{
 		bot.WithDefaultHandler(defaultHandler),
@@ -71,12 +72,22 @@ func standingsHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 	standings := manager.GetCachedCompetitionStandings(uint(compId))
 
-	_, err = b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
-		Text:                template.CreateCompetitionStandingsMessage(standings),
-		DisableNotification: true,
-		ParseMode:           models.ParseModeMarkdown,
-		//ReplyMarkup:         replyMarkup,
+	standingsFilePath, err := manager.GetStandingsImage(compId, standings)
+	if nil != err {
+		panic(err)
+	}
+	standingsFile, err := os.Open(standingsFilePath)
+	if nil != err {
+		panic(err)
+	}
+
+	_, err = b.SendPhoto(ctx, &bot.SendPhotoParams{
+		ChatID: update.CallbackQuery.Message.Message.Chat.ID,
+		Photo: &models.InputFileUpload{
+			Filename: standingsFilePath,
+			Data:     standingsFile,
+		},
+		Caption: "Standings",
 	})
 
 	if nil != err {

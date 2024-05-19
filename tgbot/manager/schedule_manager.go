@@ -29,6 +29,7 @@ type StandingView struct {
 	Points      int
 	GoalsDiff   int
 	Form        string
+	Played      int
 	Won         int
 	Drawn       int
 	Lost        int
@@ -217,6 +218,7 @@ func getCompetitionStandings(standingsData *[]StandingsData, competitionId uint)
 			Points:      standing.Points,
 			GoalsDiff:   standing.GoalsDiff,
 			Form:        standing.Form,
+			Played:      standing.Played,
 			Won:         standing.Won,
 			Drawn:       standing.Drawn,
 			Lost:        standing.Lost,
