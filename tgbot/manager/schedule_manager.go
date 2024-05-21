@@ -138,14 +138,8 @@ func fetchUpToDateCompetitionStandings(competitionId uint) []league.Standing {
 	var standings []league.Standing
 	dbGorm.
 		Table("standing as s").
-		Select("s.*, team.code").
 		Joins("join competition c on c.id = s.competition_id and c.current_season = s.season").
 		Joins("join team on team.id = s.team_id").
-		Joins("join ("+
-			"select `rank`, `group`, max(id) as max_id "+
-			"from standing "+
-			"group by `rank`, `group`"+
-			") as latest on latest.`rank` = s.`rank` and latest.`group` = s.`group` and latest.max_id = s.id").
 		Preload("Team").
 		Where("s.competition_id = ?", competitionId).
 		Order("s.rank ASC").

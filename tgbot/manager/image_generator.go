@@ -95,17 +95,19 @@ func createCompetitionStandingsImage(standings []StandingsData, imgPath string) 
 	}
 
 	y := Padding
-	for _, group := range standings {
+	for id, group := range standings {
 		dc.DrawString(group.GroupName, Padding, float64(y))
 		y += RowHeight
 
-		headers := []string{"R", "Team", "Pts", "P", "W", "D", "L", "GD", "Form"}
-		x := Padding
-		for i, header := range headers {
-			dc.DrawString(header, float64(x), float64(y))
-			x += maxLengths[i] * S
+		if id == 0 {
+			headers := []string{"R", "Team", "Pts", "P", "W", "D", "L", "GD", "Form"}
+			x := Padding
+			for i, header := range headers {
+				dc.DrawString(header, float64(x), float64(y))
+				x += maxLengths[i] * S
+			}
+			y += RowHeight
 		}
-		y += RowHeight
 
 		for _, standing := range group.Standings {
 			cells := []string{
