@@ -42,7 +42,7 @@ func createCompetitionStandingsImage(standings []StandingsData, imgPath string) 
 		for _, standing := range group.Standings {
 			cells := []string{
 				fmt.Sprintf("%d", standing.Position),
-				standing.TeamName,
+				standing.GetTeamNameWithCode(),
 				fmt.Sprintf("%d", standing.Points),
 				fmt.Sprintf("%d", standing.Played),
 				fmt.Sprintf("%d", standing.Won),

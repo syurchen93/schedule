@@ -49,6 +49,13 @@ type FixtureView struct {
 	IsToggled    bool
 }
 
+func (s StandingView) GetTeamNameWithCode() string {
+	if s.TeamCode != "" {
+		return fmt.Sprintf("%s (%s)", s.TeamName, s.TeamCode)
+	}
+	return s.TeamName
+}
+
 const DefaultDaysInFuture = 7
 const DefaultDaysInPast = 7
 
