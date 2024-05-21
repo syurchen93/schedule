@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"schedule/model/bot"
 	"schedule/model/league"
+	"sort"
 	"time"
 
 	"github.com/syurchen93/api-football-client/common"
@@ -133,6 +134,26 @@ func GetToggleFixtureViewByFixtureId(user *bot.User, fixtureId int) FixtureView 
 	return view
 }
 
+func fetchUpToDateCompetitionStandings(competitionId uint) []league.Standing {
+	var standings []league.Standing
+	dbGorm.
+		Table("standing as s").
+		Select("s.*, team.code").
+		Joins("join competition c on c.id = s.competition_id and c.current_season = s.season").
+		Joins("join team on team.id = s.team_id").
+		Joins("join ("+
+			"select `rank`, `group`, max(id) as max_id "+
+			"from standing "+
+			"group by `rank`, `group`"+
+			") as latest on latest.`rank` = s.`rank` and latest.`group` = s.`group` and latest.max_id = s.id").
+		Preload("Team").
+		Where("s.competition_id = ?", competitionId).
+		Order("s.rank ASC").
+		Find(&standings)
+
+	return standings
+}
+
 func createFixtureView(fixture league.Fixture) FixtureView {
 	return FixtureView{
 		ID:           fixture.ID,
@@ -199,23 +220,8 @@ func toggleFixtureViewAlertIfNeeded(user *bot.User, fixture FixtureView) {
 	}
 }
 
-func getCompetitionStandings(standingsData *[]StandingsData, competitionId uint) {
-	var standings []league.Standing
-	dbGorm.
-		Table("standing as s").
-		Select("s.*, team.code").
-		Joins("join competition c on c.id = s.competition_id and c.current_season = s.season").
-		Joins("join team on team.id = s.team_id").
-		Joins("join ("+
-			"select `rank`, `group`, max(id) as max_id "+
-			"from standing "+
-			"group by `rank`, `group`"+
-			") as latest on latest.`rank` = s.`rank` and latest.`group` = s.`group` and latest.max_id = s.id").
-		Preload("Team").
-		Where("s.competition_id = ?", competitionId).
-		Order("s.rank ASC").
-		Find(&standings)
-
+func buildStandingDatas(standings []league.Standing) []StandingsData {
+	var standingsData []StandingsData
 	groupedStandings := make(map[string][]StandingView)
 	for _, standing := range standings {
 		standingsView := StandingView{
@@ -235,12 +241,26 @@ func getCompetitionStandings(standingsData *[]StandingsData, competitionId uint)
 		groupedStandings[standing.Group] = append(groupedStandings[standing.Group], standingsView)
 	}
 
-	for groupName, groupStandings := range groupedStandings {
+	var groupNames []string
+	for groupName := range groupedStandings {
+		groupNames = append(groupNames, groupName)
+	}
+	sort.Strings(groupNames)
+
+	for _, groupName := range groupNames {
+		groupStandings := groupedStandings[groupName]
+
+		sort.Slice(groupStandings, func(i, j int) bool {
+			return groupStandings[i].Position < groupStandings[j].Position
+		})
+
 		standingData := StandingsData{
 			GroupName: groupName,
 			Standings: groupStandings,
 		}
 
-		*standingsData = append(*standingsData, standingData)
+		standingsData = append(standingsData, standingData)
 	}
+
+	return standingsData
 }

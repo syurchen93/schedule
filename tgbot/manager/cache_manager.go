@@ -33,7 +33,7 @@ func GetCachedCompetitionStandings(compId uint) []StandingsData {
 		return standings
 	}
 
-	getCompetitionStandings(&standings, compId)
+	standings = buildStandingDatas(fetchUpToDateCompetitionStandings(compId))
 	util.SetCacheItem(cacheKey, standings)
 
 	return standings
