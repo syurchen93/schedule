@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/fogleman/gg"
 	"os"
+	"time"
 )
 
 var imgDir string
@@ -13,6 +14,8 @@ const (
 	S         = 20 // Font size
 	Padding   = 20 // Padding
 	RowHeight = 30 // Row height
+
+	ImageLifetime = 24 * time.Hour
 )
 
 func InitImageGenerator(imgDirArg string) {
@@ -22,7 +25,7 @@ func InitImageGenerator(imgDirArg string) {
 func GetStandingsImage(compId int, standingsData []StandingsData) (string, error) {
 	filePathBase := fmt.Sprintf("%sstandings_%d", imgDir, compId)
 	filepath := fmt.Sprintf("%s.png", filePathBase)
-	if _, err := os.Stat(filepath); err == nil {
+	if checkIfUpToDateImageExists(filepath) {
 		return filepath, nil
 	}
 
@@ -32,6 +35,19 @@ func GetStandingsImage(compId int, standingsData []StandingsData) (string, error
 	}
 
 	return filepath, nil
+}
+
+func checkIfUpToDateImageExists(filePath string) bool {
+	fileInfo, err := os.Stat(filePath)
+	if err == nil {
+		oneDayAgo := time.Now().Add(-ImageLifetime)
+		if fileInfo.ModTime().Before(oneDayAgo) {
+			os.Remove(filePath)
+
+			return false
+		}
+	}
+	return true
 }
 
 func createCompetitionStandingsImage(standings []StandingsData, imgPath string) error {
