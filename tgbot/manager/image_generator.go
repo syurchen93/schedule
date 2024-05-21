@@ -43,11 +43,11 @@ func checkIfUpToDateImageExists(filePath string) bool {
 		oneDayAgo := time.Now().Add(-ImageLifetime)
 		if fileInfo.ModTime().Before(oneDayAgo) {
 			os.Remove(filePath)
-
 			return false
 		}
+		return true
 	}
-	return true
+	return false
 }
 
 func createCompetitionStandingsImage(standings []StandingsData, imgPath string) error {
