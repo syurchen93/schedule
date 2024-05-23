@@ -26,6 +26,7 @@ type StandingsData struct {
 type StandingView struct {
 	TeamName    string
 	TeamCode    string
+	TeamId      int
 	Position    int
 	Points      int
 	GoalsDiff   int
@@ -219,6 +220,7 @@ func buildStandingDatas(standings []league.Standing) []StandingsData {
 	groupedStandings := make(map[string][]StandingView)
 	for _, standing := range standings {
 		standingsView := StandingView{
+			TeamId:      standing.Team.ID,
 			TeamName:    standing.Team.Name,
 			TeamCode:    *standing.Team.Code,
 			Position:    standing.Rank,
