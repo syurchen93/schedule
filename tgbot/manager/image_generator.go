@@ -15,7 +15,7 @@ import (
 var imgDir string
 
 const (
-	CharWidth = 23
+	CharWidth = 22
 	S         = 20 // Font size
 	Padding   = 20 // Padding
 	RowHeight = 30 // Row height
@@ -95,6 +95,9 @@ func createCompetitionStandingsImage(standings []StandingsData, imgPath string) 
 			headers := []string{"R", "Team", "Pts", "P", "W", "D", "L", "GD", "Form"}
 			x := Padding
 			for i, header := range headers {
+				if i == 1 {
+					x += IconWidth + IconPadding
+				}
 				dc.DrawString(header, float64(x), float64(y))
 				x += maxLengths[i] * S
 			}
