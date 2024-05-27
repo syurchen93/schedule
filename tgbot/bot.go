@@ -115,7 +115,6 @@ func fixtureToggleHandler(ctx context.Context, b *bot.Bot, update *models.Update
 			competitionFixtures,
 		)
 	} else {
-		fmt.Println("Using cached message")
 		fixtureView := manager.GetToggleFixtureViewByFixtureId(user, fixtureId)
 		editedKeyboard = template.ToggleFixtureOnCachedKeyboard(*user, fixtureView, originalMsg.ReplyMarkup)
 	}
