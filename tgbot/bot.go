@@ -57,6 +57,7 @@ func main() {
 	}
 
 	timer.Every(AlertInterval*time.Second, func() bool {
+		fmt.Println("Checking for alerts")
 		return manager.GetAndFireAlerts(ctx, b)
 	})
 
