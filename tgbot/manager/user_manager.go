@@ -93,7 +93,7 @@ func createUser(ctx context.Context, b *bot.Bot, update *models.Update) (*model.
 		return nil, err
 	}
 
-	user := transformer.CreateUserFromChatMember(chatMember, update)
+	user := transformer.CreateUserFromChatMember(chatMember)
 	result := dbGorm.FirstOrCreate(&user, model.User{ID: user.ID})
 	if result.Error != nil {
 		return nil, result.Error

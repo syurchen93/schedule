@@ -8,7 +8,6 @@ import (
 
 type User struct {
 	ID                   int            `gorm:"primaryKey"`
-	ChatId               int            `gorm:"type:bigint"`
 	FirstName            string         `gorm:"type:varchar(100)"`
 	LastName             string         `gorm:"type:varchar(100)"`
 	Username             string         `gorm:"type:varchar(100)"`

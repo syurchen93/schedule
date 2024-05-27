@@ -21,7 +21,7 @@ func GetAndFireAlerts(ctx context.Context, b *bot.Bot) bool {
 
 func fireAlert(ctx context.Context, b *bot.Bot, alert model.Alert) {
 	success, err := b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: alert.User.ChatId,
+		ChatID: alert.User.ID,
 		Text: fmt.Sprintf(
 			"⏰ %s %s %s %s %d %s",
 			alert.Fixture.HomeTeam.Name,

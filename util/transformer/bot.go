@@ -5,11 +5,10 @@ import (
 	model "schedule/model/bot"
 )
 
-func CreateUserFromChatMember(chatMember *models.ChatMember, update *models.Update) model.User {
+func CreateUserFromChatMember(chatMember *models.ChatMember) model.User {
 	chatUser := chatMember.Member.User
 	return model.User{
 		ID:        int(chatUser.ID),
-		ChatId:    int(update.CallbackQuery.Message.Message.Chat.ID),
 		Username:  chatUser.Username,
 		FirstName: chatUser.FirstName,
 		LastName:  chatUser.LastName,
