@@ -20,7 +20,7 @@ import (
 	"schedule/util"
 )
 
-const AlertInterval = 60
+const AlertIntervalSeconds = 10
 
 var dbGorm *gorm.DB
 var defaultLocale = "en"
@@ -56,7 +56,7 @@ func main() {
 		panic(err)
 	}
 
-	timer.Every(AlertInterval*time.Second, func() bool {
+	timer.Every(AlertIntervalSeconds*time.Second, func() bool {
 		return manager.GetAndFireAlerts(ctx, b)
 	})
 
