@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"schedule/util"
 )
 
 var imgDir string
@@ -36,14 +38,14 @@ func InitImageGenerator(imgDirArg string) {
 	imgDir = imgDirArg
 }
 
-func GetStandingsImage(compId int, standingsData []StandingsData) (string, error) {
-	filePathBase := fmt.Sprintf("%sstandings_%d", imgDir, compId)
+func GetStandingsImage(compId int, standingsData []StandingsData, locale string) (string, error) {
+	filePathBase := fmt.Sprintf("%sstandings_%d_%s", imgDir, compId, locale)
 	filepath := fmt.Sprintf("%s.png", filePathBase)
 	if checkIfUpToDateImageExists(filepath) {
 		return filepath, nil
 	}
 
-	err := createCompetitionStandingsImage(standingsData, filePathBase)
+	err := createCompetitionStandingsImage(standingsData, filePathBase, locale)
 	if err != nil {
 		return "", err
 	}
@@ -64,7 +66,7 @@ func checkIfUpToDateImageExists(filePath string) bool {
 	return false
 }
 
-func createCompetitionStandingsImage(standings []StandingsData, imgPath string) error {
+func createCompetitionStandingsImage(standings []StandingsData, imgPath string, locale string) error {
 	maxLengths, totalStandings := generateStandingDimensions(standings)
 
 	totalWidth := 0
@@ -92,7 +94,17 @@ func createCompetitionStandingsImage(standings []StandingsData, imgPath string) 
 		y += RowHeight
 
 		if id == 0 {
-			headers := []string{"R", "Team", "Pts", "P", "W", "D", "L", "GD", "Form"}
+			headers := []string{
+				util.Translate(locale, "StandingRank"),
+				util.Translate(locale, "StandingTeam"),
+				util.Translate(locale, "StandingPoints"),
+				util.Translate(locale, "StandingPlayed"),
+				util.Translate(locale, "StandingWon"),
+				util.Translate(locale, "StandingDrawn"),
+				util.Translate(locale, "StandingLost"),
+				util.Translate(locale, "StandingGoalsDiff"),
+				util.Translate(locale, "StandingForm"),
+			}
 			x := Padding
 			for i, header := range headers {
 				if i == 1 {

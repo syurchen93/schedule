@@ -32,9 +32,9 @@ var TimeFormat = "Mon 2.01 15:04"
 var LanguageSelectKeyboard = &models.InlineKeyboardMarkup{
 	InlineKeyboard: [][]models.InlineKeyboardButton{
 		{
-			{Text: "🇬🇧 English", CallbackData: CbdSetLang + "_en"},
-			{Text: "🇷🇺 Русский", CallbackData: CbdSetLang + "set_lang_ru"},
-			{Text: "🇩🇪 Deutsch", CallbackData: CbdSetLang + "set_lang_de"},
+			{Text: "🇬🇧 English", CallbackData: CbdSetLang + "en"},
+			{Text: "🇷🇺 Русский", CallbackData: CbdSetLang + "ru"},
+			{Text: "🇩🇪 Deutsch", CallbackData: CbdSetLang + "de"},
 		},
 	},
 }

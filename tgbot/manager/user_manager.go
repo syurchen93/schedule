@@ -72,9 +72,16 @@ func GetOrCreateUser(ctx context.Context, b *bot.Bot, update *models.Update) *mo
 }
 
 func getUserByUpdate(update *models.Update) (*model.User, error) {
+	var userId int
 	user := model.User{}
 
-	result := dbGorm.First(&user, update.CallbackQuery.From.ID)
+	if update.CallbackQuery == nil {
+		userId = int(update.Message.From.ID)
+	} else {
+		userId = int(update.CallbackQuery.From.ID)
+	}
+
+	result := dbGorm.First(&user, userId)
 
 	if result.Error != nil {
 		return &user, result.Error

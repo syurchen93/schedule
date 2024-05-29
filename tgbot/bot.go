@@ -72,7 +72,8 @@ func standingsHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 	standings := manager.GetCachedCompetitionStandings(uint(compId))
 
-	standingsFilePath, err := manager.GetStandingsImage(compId, standings)
+	user := manager.GetOrCreateUser(ctx, b, update)
+	standingsFilePath, err := manager.GetStandingsImage(compId, standings, user.Locale)
 	if nil != err {
 		panic(err)
 	}
@@ -283,7 +284,7 @@ func settingsGeneralHandler(ctx context.Context, b *bot.Bot, update *models.Upda
 func setLocaleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	answerCallbackQuery(ctx, b, update)
 
-	locale := update.CallbackQuery.Data[len("set_lang_"):]
+	locale := update.CallbackQuery.Data[len(template.CbdSetLang):]
 	_ = manager.GetOrCreateUser(ctx, b, update)
 
 	err := manager.UpdateCurrentUserLocale(locale)
@@ -303,13 +304,20 @@ func setLocaleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 }
 
 func defaultHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	var chatId int64
 	answerCallbackQuery(ctx, b, update)
+
+	if update.CallbackQuery != nil {
+		chatId = update.CallbackQuery.Message.Message.Chat.ID
+	} else {
+		chatId = update.Message.Chat.ID
+	}
 
 	user := manager.GetOrCreateUser(ctx, b, update)
 
 	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
 		DisableNotification: true,
-		ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
+		ChatID:              chatId,
 		Text:                transateForUpdateUser("Greetings", update),
 		ReplyMarkup:         template.GetLanguageSelectKeyboardForUser(*user),
 	})
@@ -328,6 +336,9 @@ func transateForUpdateUser(key string, update *models.Update) string {
 }
 
 func answerCallbackQuery(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if (update.CallbackQuery == nil) || (update.CallbackQuery.ID == "") {
+		return
+	}
 	_, err := b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 		CallbackQueryID: update.CallbackQuery.ID,
 		ShowAlert:       false,
