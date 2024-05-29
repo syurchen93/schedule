@@ -88,7 +88,7 @@ func standingsHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 			Filename: standingsFilePath,
 			Data:     standingsFile,
 		},
-		Caption: "Standings",
+		Caption: util.Translate(user.Locale, "Standings"),
 	})
 
 	if nil != err {
