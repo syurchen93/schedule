@@ -27,6 +27,7 @@ func GetAlertCompetitionViewsForUser(userId int) []CompetitionView {
 		Preload("Fixture.HomeTeam").
 		Preload("Fixture.AwayTeam").
 		Preload("Fixture.Competition").
+		Preload("Fixture.Competition.Country").
 		Where("user_id = ? and is_fired = 0", userId).
 		Find(&alerts)
 

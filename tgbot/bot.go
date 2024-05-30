@@ -70,16 +70,22 @@ func settingsAlertHandler(ctx context.Context, b *bot.Bot, update *models.Update
 	user := manager.GetOrCreateUser(ctx, b, update)
 
 	alertCompViews := manager.GetAlertCompetitionViewsForUser(user.ID)
-	for _, compView := range alertCompViews {
-		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+	for i, compView := range alertCompViews {
+		keyboard := template.GetCompetitionFixturesKeyboardForUser(*user, compView)
+		if i == len(alertCompViews)-1 {
+			template.AppendTranslatedButtonToKeyboard(keyboard, template.ButtonSettings, *user)
+			template.AppendTranslatedButtonToKeyboard(keyboard, template.ButtonSchedule, *user)
+		}
+		msg, err := b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
 			Text:                fmt.Sprintf("%s %s", manager.GetCountryEmoji(compView.CountryName), compView.CompName),
 			DisableNotification: true,
-			ReplyMarkup:         template.GetCompetitionFixturesKeyboardForUser(*user, compView),
+			ReplyMarkup:         keyboard,
 		})
 		if nil != err {
 			panic(err)
 		}
+		manager.CacheBotMessage(msg)
 	}
 
 	if len(alertCompViews) == 0 {
@@ -140,6 +146,7 @@ func fixtureToggleHandler(ctx context.Context, b *bot.Bot, update *models.Update
 
 	originalMsg := manager.GetCachedBotMessage(update.CallbackQuery.Message.Message.ID)
 	if originalMsg == nil || originalMsg.ID == 0 {
+		fmt.Println("Original message not found")
 		competitionFixtures := manager.GetCompetitionFixturesAndToggleByFixtureId(user, fixtureId)
 		editedKeyboard = template.GetCompetitionFixturesKeyboardForUser(
 			*user,
