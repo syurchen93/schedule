@@ -7,8 +7,12 @@ import (
 	"github.com/go-telegram/bot/models"
 )
 
-const BotMsgPrefix = "bot_message_"
-const CompStandings = "comp_standings_"
+const (
+	BotMsgPrefix  = "bot_message_"
+	CompStandings = "comp_standings_"
+
+	UserTextInputModePrefix = "user_input_mode_"
+)
 
 func CacheBotMessage(msg *models.Message) {
 	util.SetCacheItem(fmt.Sprintf("%s%d", BotMsgPrefix, msg.ID), msg)
@@ -37,4 +41,21 @@ func GetCachedCompetitionStandings(compId uint) []StandingsData {
 	util.SetCacheItem(cacheKey, standings)
 
 	return standings
+}
+
+func SetUserTextInputMode(userId int, mode string) {
+	util.SetCacheItem(fmt.Sprintf("%s%d", UserTextInputModePrefix, userId), mode)
+}
+
+func GetUserTextInputMode(userId int) *string {
+	mode, ok := util.GetCacheString(fmt.Sprintf("%s%d", UserTextInputModePrefix, userId))
+	if !ok {
+		return nil
+	}
+
+	return &mode
+}
+
+func ClearUserTextInputMode(userId int) {
+	util.DeleteCacheItem(fmt.Sprintf("%s%d", UserTextInputModePrefix, userId))
 }

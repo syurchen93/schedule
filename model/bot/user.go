@@ -12,6 +12,7 @@ type User struct {
 	LastName             string         `gorm:"type:varchar(100)"`
 	Username             string         `gorm:"type:varchar(100)"`
 	Locale               string         `gorm:"type:varchar(3)"`
+	Timezone             string         `gorm:"type:varchar(100);default:Europe/Berlin"`
 	DisabledCountries    datatypes.JSON `gorm:"type:json"`
 	DisabledCompetitions datatypes.JSON `gorm:"type:json"`
 	EnableSpoilers       bool           `gorm:"type:boolean;default:false"`

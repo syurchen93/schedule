@@ -20,8 +20,8 @@ func InitTranslator(path string, supportedLocales []string) {
 	}
 }
 
-func Translate(locale, key string) string {
-	return translator.Tr(locale, key)
+func Translate(locale, key string, args ...interface{}) string {
+	return translator.Tr(locale, key, args...)
 }
 
 func SetTranslator(t TranslatorInterface) {

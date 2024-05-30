@@ -12,6 +12,7 @@ import (
 type CacheInterface interface {
 	Get(key string) (string, bool)
 	Set(key string, value string) bool
+	Delete(key string)
 }
 
 var cachePool CacheInterface
@@ -64,4 +65,8 @@ func SetCacheItem(key string, value interface{}) {
 	}
 
 	cachePool.Set(key, strValue)
+}
+
+func DeleteCacheItem(key string) {
+	cachePool.Delete(key)
 }

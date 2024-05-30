@@ -37,6 +37,15 @@ func UpdateCurrentUserLocale(locale string) error {
 	return nil
 }
 
+func UpdateUserTImezone(user *model.User, timezone string) error {
+	result := dbGorm.Model(user).Update("timezone", timezone)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
 func GetUserLocale(update *models.Update) (string, error) {
 	if currentUser != nil {
 		return currentUser.Locale, nil
