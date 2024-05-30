@@ -18,6 +18,7 @@ const (
 	CbdSettingsCompetition       = "settings_competition"
 	CbdSettingsAlert             = "settings_alert"
 	CbdSettingsUser              = "settings_user"
+	CbdSettingsTimezone          = "settings_timezone"
 	CbdSettings                  = "settings"
 	CbdSchedule                  = "schedule"
 	CbdShowStandings             = "standings_"
@@ -55,6 +56,23 @@ var KeyboardSettingsGeneral = &models.InlineKeyboardMarkup{
 	},
 }
 
+var KeyboardSettingsUser = &models.InlineKeyboardMarkup{
+	InlineKeyboard: [][]models.InlineKeyboardButton{
+		{
+			{
+				Text:         "SettingsTimezone",
+				CallbackData: CbdSettingsTimezone,
+			},
+		},
+		{
+			{
+				Text:         "Back",
+				CallbackData: "settings",
+			},
+		},
+	},
+}
+
 var ButtonSettings = models.InlineKeyboardButton{
 	Text:         "ToSettings",
 	CallbackData: CbdSettings,
@@ -68,6 +86,12 @@ var ButtonSchedule = models.InlineKeyboardButton{
 var ButtonRefreshSchedule = models.InlineKeyboardButton{
 	Text:         "RefreshSchedule",
 	CallbackData: CbdSchedule,
+}
+
+func GetUserSettingsKeyboardForUser(user model.User) *models.InlineKeyboardMarkup {
+	keyboard := KeyboardSettingsUser
+
+	return TranslateKeyboardForUser(user, keyboard)
 }
 
 func AppendTranslatedButtonToKeyboard(keyboard *models.InlineKeyboardMarkup, button models.InlineKeyboardButton, user model.User) {

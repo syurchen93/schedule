@@ -42,11 +42,17 @@ func main() {
 		bot.WithDefaultHandler(defaultHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdSetLang, bot.MatchTypePrefix, setLocaleHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdSettings, bot.MatchTypeExact, settingsGeneralHandler),
+
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsCountry, bot.MatchTypeExact, settingsCountryHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsCountryToggle, bot.MatchTypePrefix, settingsCountryToggleHandler),
+
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsCompetition, bot.MatchTypeExact, settingsCompetitionHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsCompetitionToggle, bot.MatchTypePrefix, settingsCompetitionToggleHandler),
+
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsAlert, bot.MatchTypeExact, settingsAlertHandler),
+
+		bot.WithCallbackQueryDataHandler(template.CbdSettingsUser, bot.MatchTypeExact, settingsUserHandler),
+
 		bot.WithCallbackQueryDataHandler(template.CbdSchedule, bot.MatchTypeExact, scheduleHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdFixtureToggle, bot.MatchTypePrefix, fixtureToggleHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdShowStandings, bot.MatchTypePrefix, standingsHandler),
@@ -62,6 +68,22 @@ func main() {
 	})
 
 	b.Start(ctx)
+}
+
+func settingsUserHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	answerCallbackQuery(ctx, b, update)
+
+	user := manager.GetOrCreateUser(ctx, b, update)
+
+	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+		DisableNotification: true,
+		ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
+		Text:                transateForUpdateUser("SettingsUser", update),
+		ReplyMarkup:         template.GetUserSettingsKeyboardForUser(*user),
+	})
+	if nil != err {
+		panic(err)
+	}
 }
 
 func settingsAlertHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
