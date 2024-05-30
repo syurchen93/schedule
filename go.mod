@@ -8,7 +8,6 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/kataras/i18n v0.0.8
 	github.com/maypok86/otter v1.2.1
-	github.com/olekukonko/tablewriter v0.0.5
 	github.com/stretchr/testify v1.9.0
 	github.com/syurchen93/api-football-client v0.0.0-20240427135740-702d5d8f7e83
 	github.com/urfave/cli/v2 v2.27.2
@@ -21,7 +20,6 @@ require (
 	github.com/dolthub/maphash v0.1.0 // indirect
 	github.com/gammazero/deque v0.2.1 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
-	github.com/mattn/go-runewidth v0.0.9 // indirect
 	golang.org/x/image v0.0.0-20211028202545-6944b10bf410 // indirect
 )
 

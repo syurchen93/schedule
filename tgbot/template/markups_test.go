@@ -16,6 +16,7 @@ func TestTranslateKeyboardForUser(t *testing.T) {
 
 	mockTranslator.On("Tr", "en", "SettingsCountry").Return("Countries")
 	mockTranslator.On("Tr", "en", "SettingsCompetition").Return("Competitions")
+	mockTranslator.On("Tr", "en", "SettingsUser").Return("User")
 	mockTranslator.On("Tr", "en", "SettingsAlert").Return("Alerts")
 	mockTranslator.On("Tr", "en", "ToSchedule").Return("ToSchedule")
 
@@ -28,7 +29,10 @@ func TestTranslateKeyboardForUser(t *testing.T) {
 				{
 					{Text: "Countries", CallbackData: "settings_country"},
 					{Text: "Competitions", CallbackData: "settings_competition"},
+				},
+				{
 					{Text: "Alerts", CallbackData: "settings_alert"},
+					{Text: "User", CallbackData: "settings_user"},
 				},
 				{
 					ButtonSchedule,

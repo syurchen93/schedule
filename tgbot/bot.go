@@ -46,6 +46,7 @@ func main() {
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsCountryToggle, bot.MatchTypePrefix, settingsCountryToggleHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsCompetition, bot.MatchTypeExact, settingsCompetitionHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsCompetitionToggle, bot.MatchTypePrefix, settingsCompetitionToggleHandler),
+		bot.WithCallbackQueryDataHandler(template.CbdSettingsAlert, bot.MatchTypeExact, settingsAlertHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdSchedule, bot.MatchTypeExact, scheduleHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdFixtureToggle, bot.MatchTypePrefix, fixtureToggleHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdShowStandings, bot.MatchTypePrefix, standingsHandler),
@@ -61,6 +62,36 @@ func main() {
 	})
 
 	b.Start(ctx)
+}
+
+func settingsAlertHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	answerCallbackQuery(ctx, b, update)
+
+	user := manager.GetOrCreateUser(ctx, b, update)
+
+	alertCompViews := manager.GetAlertCompetitionViewsForUser(user.ID)
+	for _, compView := range alertCompViews {
+		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
+			Text:                fmt.Sprintf("%s %s", manager.GetCountryEmoji(compView.CountryName), compView.CompName),
+			DisableNotification: true,
+			ReplyMarkup:         template.GetCompetitionFixturesKeyboardForUser(*user, compView),
+		})
+		if nil != err {
+			panic(err)
+		}
+	}
+
+	if len(alertCompViews) == 0 {
+		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
+			Text:                util.Translate(user.Locale, "NoAlerts"),
+			DisableNotification: true,
+		})
+		if nil != err {
+			panic(err)
+		}
+	}
 }
 
 func standingsHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
@@ -108,7 +139,7 @@ func fixtureToggleHandler(ctx context.Context, b *bot.Bot, update *models.Update
 	}
 
 	originalMsg := manager.GetCachedBotMessage(update.CallbackQuery.Message.Message.ID)
-	if originalMsg.ID == 0 {
+	if originalMsg == nil || originalMsg.ID == 0 {
 		competitionFixtures := manager.GetCompetitionFixturesAndToggleByFixtureId(user, fixtureId)
 		editedKeyboard = template.GetCompetitionFixturesKeyboardForUser(
 			*user,

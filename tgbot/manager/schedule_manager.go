@@ -135,18 +135,34 @@ func GetToggleFixtureViewByFixtureId(user *bot.User, fixtureId int) FixtureView 
 	return view
 }
 
-func fetchUpToDateCompetitionStandings(competitionId uint) []league.Standing {
-	var standings []league.Standing
-	dbGorm.
-		Table("standing as s").
-		Joins("join competition c on c.id = s.competition_id and c.current_season = s.season").
-		Joins("join team on team.id = s.team_id").
-		Preload("Team").
-		Where("s.competition_id = ?", competitionId).
-		Order("s.rank ASC").
-		Find(&standings)
+func CreateCompetitionFixtureViewFromAlers(alerts []bot.Alert) []CompetitionView {
+	var compViews []CompetitionView
 
-	return standings
+	for _, alert := range alerts {
+		fixture := alert.Fixture
+		var compFound bool
+		fixtureView := createFixtureView(fixture)
+		for i, comp := range compViews {
+			if comp.CompId == fixture.CompetitionID {
+				compViews[i].Fixtures = append(compViews[i].Fixtures, fixtureView)
+				compFound = true
+				break
+			}
+		}
+		if !compFound {
+			compView := CompetitionView{
+				CompId:      fixture.CompetitionID,
+				CompName:    fixture.Competition.Name,
+				CountryName: fixture.Competition.Country.Name,
+				Fixtures: []FixtureView{
+					fixtureView,
+				},
+			}
+			compViews = append(compViews, compView)
+		}
+	}
+
+	return compViews
 }
 
 func createFixtureView(fixture league.Fixture) FixtureView {
@@ -159,6 +175,20 @@ func createFixtureView(fixture league.Fixture) FixtureView {
 		Status:       fixture.Status,
 		HasAlert:     fixture.HasUserAlert,
 	}
+}
+
+func fetchUpToDateCompetitionStandings(competitionId uint) []league.Standing {
+	var standings []league.Standing
+	dbGorm.
+		Table("standing as s").
+		Joins("join competition c on c.id = s.competition_id and c.current_season = s.season").
+		Joins("join team on team.id = s.team_id").
+		Preload("Team").
+		Where("s.competition_id = ?", competitionId).
+		Order("s.rank ASC").
+		Find(&standings)
+
+	return standings
 }
 
 func generateScoreString(fixture league.Fixture) string {

@@ -19,6 +19,20 @@ func GetAndFireAlerts(ctx context.Context, b *bot.Bot) bool {
 	return true
 }
 
+func GetAlertCompetitionViewsForUser(userId int) []CompetitionView {
+	var alerts []model.Alert
+
+	dbGorm.
+		Preload("Fixture").
+		Preload("Fixture.HomeTeam").
+		Preload("Fixture.AwayTeam").
+		Preload("Fixture.Competition").
+		Where("user_id = ? and is_fired = 0", userId).
+		Find(&alerts)
+
+	return CreateCompetitionFixtureViewFromAlers(alerts)
+}
+
 func fireAlert(ctx context.Context, b *bot.Bot, alert model.Alert) {
 	success, err := b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: alert.User.ID,

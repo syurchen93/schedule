@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/go-telegram/bot/models"
-	"github.com/olekukonko/tablewriter"
 )
 
 const (
@@ -18,6 +17,7 @@ const (
 	CbdSettingsCountry           = "settings_country"
 	CbdSettingsCompetition       = "settings_competition"
 	CbdSettingsAlert             = "settings_alert"
+	CbdSettingsUser              = "settings_user"
 	CbdSettings                  = "settings"
 	CbdSchedule                  = "schedule"
 	CbdShowStandings             = "standings_"
@@ -44,7 +44,10 @@ var KeyboardSettingsGeneral = &models.InlineKeyboardMarkup{
 		{
 			{Text: "SettingsCountry", CallbackData: CbdSettingsCountry},
 			{Text: "SettingsCompetition", CallbackData: CbdSettingsCompetition},
+		},
+		{
 			{Text: "SettingsAlert", CallbackData: CbdSettingsAlert},
+			{Text: "SettingsUser", CallbackData: CbdSettingsUser},
 		},
 		{
 			ButtonSchedule,
@@ -65,36 +68,6 @@ var ButtonSchedule = models.InlineKeyboardButton{
 var ButtonRefreshSchedule = models.InlineKeyboardButton{
 	Text:         "RefreshSchedule",
 	CallbackData: CbdSchedule,
-}
-
-func CreateCompetitionStandingsMessage(standings []manager.StandingsData) string {
-	var builder strings.Builder
-	for _, group := range standings {
-		var tableData [][]string
-		builder.WriteString(fmt.Sprintf("**%s**\n", group.GroupName))
-		for _, standing := range group.Standings {
-			row := []string{
-				fmt.Sprintf("%d", standing.Position),
-				standing.TeamName,
-				fmt.Sprintf("%d", standing.Points),
-				fmt.Sprintf("%d", standing.Won),
-				fmt.Sprintf("%d", standing.Drawn),
-				fmt.Sprintf("%d", standing.Lost),
-				fmt.Sprintf("%d", standing.GoalsDiff),
-				standing.Form,
-			}
-			tableData = append(tableData, row)
-		}
-		table := tablewriter.NewWriter(&builder)
-		table.SetHeader([]string{"R", "Team", "P", "W", "D", "L", "GD", "Form"})
-		table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-		table.SetColumnSeparator("\\|")
-		table.SetCenterSeparator("\\*")
-		table.AppendBulk(tableData)
-		table.Render()
-	}
-
-	return strings.ReplaceAll(builder.String(), "-", "\\-")
 }
 
 func AppendTranslatedButtonToKeyboard(keyboard *models.InlineKeyboardMarkup, button models.InlineKeyboardButton, user model.User) {
