@@ -37,8 +37,17 @@ func UpdateCurrentUserLocale(locale string) error {
 	return nil
 }
 
-func UpdateUserTImezone(user *model.User, timezone string) error {
+func UpdateUserTimezone(user *model.User, timezone string) error {
 	result := dbGorm.Model(user).Update("timezone", timezone)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func UpdateUserAlertOffset(user *model.User, offset int) error {
+	result := dbGorm.Model(user).Update("alert_offset", offset*60)
 	if result.Error != nil {
 		return result.Error
 	}

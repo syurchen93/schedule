@@ -17,6 +17,7 @@ const (
 	CbdSettingsCountry           = "settings_country"
 	CbdSettingsCompetition       = "settings_competition"
 	CbdSettingsAlert             = "settings_alert"
+	CbdSettingsUserAlertOffset   = "settings_user_alert_offset"
 	CbdSettingsUser              = "settings_user"
 	CbdSettingsTimezone          = "settings_timezone"
 	CbdSettingsTimezoneInput     = "settings_timezone_input"
@@ -62,6 +63,7 @@ var KeyboardSettingsUser = &models.InlineKeyboardMarkup{
 	InlineKeyboard: [][]models.InlineKeyboardButton{
 		{
 			{Text: "SettingsTimezone", CallbackData: CbdSettingsTimezone},
+			{Text: "SettingsAlertOffset", CallbackData: CbdSettingsUserAlertOffset},
 		},
 		{
 			{Text: "Back", CallbackData: CbdSettings},
@@ -69,7 +71,7 @@ var KeyboardSettingsUser = &models.InlineKeyboardMarkup{
 	},
 }
 
-var KeyboardTimezone = &models.InlineKeyboardMarkup{
+var KeyboardBack = &models.InlineKeyboardMarkup{
 	InlineKeyboard: [][]models.InlineKeyboardButton{
 		{
 			{Text: "Back", CallbackData: CbdSettings},

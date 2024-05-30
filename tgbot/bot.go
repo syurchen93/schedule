@@ -27,7 +27,8 @@ var defaultLocale = "en"
 var supportedLocales = []string{"en", "ru", "de"}
 
 const (
-	UserTextInputModeCity = "city"
+	UserTextInputModeCity        = "city"
+	UserTextInputModeAlertOffset = "alert_offset"
 )
 
 func main() {
@@ -57,6 +58,7 @@ func main() {
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsCompetitionToggle, bot.MatchTypePrefix, settingsCompetitionToggleHandler),
 
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsAlert, bot.MatchTypeExact, settingsAlertHandler),
+		bot.WithCallbackQueryDataHandler(template.CbdSettingsUserAlertOffset, bot.MatchTypeExact, settingsUserAlertOffsetHandler),
 
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsUser, bot.MatchTypeExact, settingsUserHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsTimezone, bot.MatchTypeExact, settingsUserTimezoneHandler),
@@ -78,6 +80,26 @@ func main() {
 	b.Start(ctx)
 }
 
+func settingsUserAlertOffsetHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	answerCallbackQuery(ctx, b, update)
+
+	user := manager.GetOrCreateUser(ctx, b, update)
+
+	minOffset := user.AlertOffset / 60
+
+	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+		DisableNotification: true,
+		ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
+		Text:                util.Translate(user.Locale, "SettingsUserAlertOffsetInfo", minOffset),
+		ReplyMarkup:         template.TranslateKeyboardForUser(*user, template.KeyboardBack),
+	})
+	if nil != err {
+		panic(err)
+	}
+
+	manager.SetUserTextInputMode(user.ID, UserTextInputModeAlertOffset)
+}
+
 func settingsUserTimezoneHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	answerCallbackQuery(ctx, b, update)
 
@@ -97,7 +119,7 @@ func settingsUserTimezoneHandler(ctx context.Context, b *bot.Bot, update *models
 			user.Timezone,
 			currentTimeInUserTimezone.Format(template.TimeFormat),
 		),
-		ReplyMarkup: template.TranslateKeyboardForUser(*user, template.KeyboardTimezone),
+		ReplyMarkup: template.TranslateKeyboardForUser(*user, template.KeyboardBack),
 	})
 	if nil != err {
 		panic(err)
@@ -413,6 +435,38 @@ func textHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	switch *mode {
 	case UserTextInputModeCity:
 		userTextInputModeCityHandler(ctx, b, update)
+	case UserTextInputModeAlertOffset:
+		userTextInputModeAlertOffsetHandler(ctx, b, update)
+	}
+}
+
+func userTextInputModeAlertOffsetHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	user := manager.GetCurrentUser()
+	alertOffset, err := strconv.Atoi(update.Message.Text)
+	if nil != err {
+		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:      update.Message.Chat.ID,
+			Text:        util.Translate(user.Locale, "SettingsUserAlertOffsetInvalid"),
+			ReplyMarkup: template.TranslateKeyboardForUser(*user, template.KeyboardBack),
+		})
+		if nil != err {
+			panic(err)
+		}
+		manager.SetUserTextInputMode(user.ID, UserTextInputModeAlertOffset)
+		return
+	}
+
+	err = manager.UpdateUserAlertOffset(user, alertOffset)
+	if nil != err {
+		panic(err)
+	}
+	_, err = b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:      update.Message.Chat.ID,
+		Text:        util.Translate(user.Locale, "SettingsUserAlertOffsetSuccess", alertOffset),
+		ReplyMarkup: template.TranslateKeyboardForUser(*user, template.KeyboardToSchedule),
+	})
+	if nil != err {
+		panic(err)
 	}
 }
 
@@ -496,7 +550,7 @@ func handleTimezoneResult(b *bot.Bot, ctx context.Context, update *models.Update
 		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:      update.Message.Chat.ID,
 			Text:        util.Translate(user.Locale, "SettingsTimezoneCityNotFound"),
-			ReplyMarkup: template.TranslateKeyboardForUser(*user, template.KeyboardTimezone),
+			ReplyMarkup: template.TranslateKeyboardForUser(*user, template.KeyboardBack),
 		})
 		if nil != err {
 			panic(err)
@@ -505,7 +559,7 @@ func handleTimezoneResult(b *bot.Bot, ctx context.Context, update *models.Update
 		return
 	}
 
-	err = manager.UpdateUserTImezone(user, timezone)
+	err = manager.UpdateUserTimezone(user, timezone)
 	if err != nil {
 		panic(err)
 	}
