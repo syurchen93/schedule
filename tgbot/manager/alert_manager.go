@@ -24,6 +24,7 @@ func GetAlertCompetitionViewsForUser(userId int) []CompetitionView {
 
 	dbGorm.
 		Preload("Fixture").
+		Preload("User").
 		Preload("Fixture.HomeTeam").
 		Preload("Fixture.AwayTeam").
 		Preload("Fixture.Competition").

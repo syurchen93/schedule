@@ -67,7 +67,7 @@ func GetCompetitionViewsForUser(user *bot.User) []CompetitionView {
 	for _, fixture := range fixtures {
 		var compFound bool
 
-		fixtureView := createFixtureView(fixture)
+		fixtureView := createFixtureView(fixture, user)
 		for i, comp := range fixturesByComp {
 			if comp.CompId == fixture.CompetitionID {
 				fixturesByComp[i].Fixtures = append(fixturesByComp[i].Fixtures, fixtureView)
@@ -128,7 +128,7 @@ func GetToggleFixtureViewByFixtureId(user *bot.User, fixtureId int) FixtureView 
 	if fixture.ID == 0 {
 		panic(fmt.Errorf("fixture with id %d not found", fixtureId))
 	}
-	view := createFixtureView(fixture)
+	view := createFixtureView(fixture, user)
 	view.IsToggled = true
 	toggleFixtureViewAlertIfNeeded(user, view)
 
@@ -141,7 +141,7 @@ func CreateCompetitionFixtureViewFromAlers(alerts []bot.Alert) []CompetitionView
 	for _, alert := range alerts {
 		fixture := alert.Fixture
 		var compFound bool
-		fixtureView := createFixtureView(fixture)
+		fixtureView := createFixtureView(fixture, &alert.User)
 		for i, comp := range compViews {
 			if comp.CompId == fixture.CompetitionID {
 				compViews[i].Fixtures = append(compViews[i].Fixtures, fixtureView)
@@ -165,12 +165,16 @@ func CreateCompetitionFixtureViewFromAlers(alerts []bot.Alert) []CompetitionView
 	return compViews
 }
 
-func createFixtureView(fixture league.Fixture) FixtureView {
+func createFixtureView(fixture league.Fixture, user *bot.User) FixtureView {
+	userTime, err := time.LoadLocation(user.Timezone)
+	if err != nil {
+		userTime = time.UTC
+	}
 	return FixtureView{
 		ID:           fixture.ID,
 		HomeTeamName: fixture.HomeTeam.Name,
 		AwayTeamName: fixture.AwayTeam.Name,
-		Date:         fixture.Date,
+		Date:         fixture.Date.In(userTime),
 		Score:        generateScoreString(fixture),
 		Status:       fixture.Status,
 		HasAlert:     fixture.HasUserAlert,
