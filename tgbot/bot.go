@@ -405,7 +405,9 @@ func setLocaleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	locale := update.CallbackQuery.Data[len(template.CbdSetLang):]
 	_ = manager.GetOrCreateUser(ctx, b, update)
 
-	err := manager.UpdateCurrentUserLocale(locale)
+	user := manager.GetOrCreateUser(ctx, b, update)
+
+	err := manager.UpdateUserLocale(user, locale)
 	if nil != err {
 		panic(err)
 	}
@@ -414,7 +416,7 @@ func setLocaleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		DisableNotification: true,
 		ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
 		Text:                transateForUpdateUser("Greetings", update),
-		ReplyMarkup:         template.GetLanguageSelectKeyboardForUser(*manager.GetCurrentUser()),
+		ReplyMarkup:         template.GetLanguageSelectKeyboardForUser(*user),
 	})
 	if nil != err {
 		panic(err)
@@ -441,7 +443,7 @@ func textHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 }
 
 func userTextInputModeAlertOffsetHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	user := manager.GetCurrentUser()
+	user := manager.GetOrCreateUser(ctx, b, update)
 	alertOffset, err := strconv.Atoi(update.Message.Text)
 	if nil != err {
 		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
@@ -544,7 +546,7 @@ func checkIfSuccessfulMessageEdit(ctx context.Context, b *bot.Bot, update *model
 }
 
 func handleTimezoneResult(b *bot.Bot, ctx context.Context, update *models.Update, timezone string, err error) {
-	user := manager.GetCurrentUser()
+	user := manager.GetOrCreateUser(ctx, b, update)
 
 	if err != nil {
 		_, err := b.SendMessage(ctx, &bot.SendMessageParams{

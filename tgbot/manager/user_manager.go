@@ -15,24 +15,18 @@ var dbGorm *gorm.DB
 var defaultLocale string
 var supportedLocales []string
 
-var currentUser *model.User
-
 func Init(db *gorm.DB, defaultLocaleArg string, supportedLocalesArg []string) {
 	dbGorm = db
 	defaultLocale = defaultLocaleArg
 	supportedLocales = supportedLocalesArg
 }
 
-func GetCurrentUser() *model.User {
-	return currentUser
-}
-
-func UpdateCurrentUserLocale(locale string) error {
-	result := dbGorm.Model(currentUser).Update("locale", locale)
+func UpdateUserLocale(user *model.User, locale string) error {
+	result := dbGorm.Model(user).Update("locale", locale)
 	if result.Error != nil {
 		return result.Error
 	}
-	currentUser.Locale = locale
+	ClearUserFromCache(user.ID)
 
 	return nil
 }
@@ -42,6 +36,7 @@ func UpdateUserTimezone(user *model.User, timezone string) error {
 	if result.Error != nil {
 		return result.Error
 	}
+	ClearUserFromCache(user.ID)
 
 	return nil
 }
@@ -51,14 +46,12 @@ func UpdateUserAlertOffset(user *model.User, offset int) error {
 	if result.Error != nil {
 		return result.Error
 	}
+	ClearUserFromCache(user.ID)
 
 	return nil
 }
 
 func GetUserLocale(update *models.Update) (string, error) {
-	if currentUser != nil {
-		return currentUser.Locale, nil
-	}
 	user, err := getUserByUpdate(update)
 	if err != nil {
 		return "", err
@@ -74,10 +67,6 @@ func GetUserLocale(update *models.Update) (string, error) {
 }
 
 func GetOrCreateUser(ctx context.Context, b *bot.Bot, update *models.Update) *model.User {
-	if currentUser != nil {
-		return currentUser
-	}
-
 	user, err := getUserByUpdate(update)
 	if err != nil {
 		user, err = createUser(ctx, b, update)
@@ -91,7 +80,7 @@ func GetOrCreateUser(ctx context.Context, b *bot.Bot, update *models.Update) *mo
 
 func getUserByUpdate(update *models.Update) (*model.User, error) {
 	var userId int
-	user := model.User{}
+	user := &model.User{}
 
 	if update.CallbackQuery == nil {
 		userId = int(update.Message.From.ID)
@@ -99,14 +88,19 @@ func getUserByUpdate(update *models.Update) (*model.User, error) {
 		userId = int(update.CallbackQuery.From.ID)
 	}
 
+	user = GetUserFromCache(userId)
+	if user != nil {
+		return user, nil
+	}
+
 	result := dbGorm.First(&user, userId)
 
 	if result.Error != nil {
-		return &user, result.Error
+		return user, result.Error
 	}
-	currentUser = &user
+	CacheUser(user)
 
-	return &user, nil
+	return user, nil
 }
 
 func createUser(ctx context.Context, b *bot.Bot, update *models.Update) (*model.User, error) {
@@ -123,7 +117,6 @@ func createUser(ctx context.Context, b *bot.Bot, update *models.Update) (*model.
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	currentUser = &user
 
 	return &user, nil
 }

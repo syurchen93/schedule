@@ -2,6 +2,7 @@ package manager
 
 import (
 	"fmt"
+	"schedule/model/bot"
 	"schedule/util"
 
 	"github.com/go-telegram/bot/models"
@@ -10,6 +11,7 @@ import (
 const (
 	BotMsgPrefix  = "bot_message_"
 	CompStandings = "comp_standings_"
+	UserPrefix    = "user_"
 
 	UserTextInputModePrefix = "user_input_mode_"
 )
@@ -58,4 +60,22 @@ func GetUserTextInputMode(userId int) *string {
 
 func ClearUserTextInputMode(userId int) {
 	util.DeleteCacheItem(fmt.Sprintf("%s%d", UserTextInputModePrefix, userId))
+}
+
+func GetUserFromCache(userId int) *bot.User {
+	var user bot.User
+	err := util.GetCacheItem(fmt.Sprintf("%s%d", UserPrefix, userId), &user)
+	if nil != err {
+		return nil
+	}
+
+	return &user
+}
+
+func CacheUser(user *bot.User) {
+	util.SetCacheItem(fmt.Sprintf("%s%d", UserPrefix, user.ID), user)
+}
+
+func ClearUserFromCache(userId int) {
+	util.DeleteCacheItem(fmt.Sprintf("%s%d", UserPrefix, userId))
 }
