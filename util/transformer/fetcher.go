@@ -58,6 +58,18 @@ func CreateTeamFromFixtureResponse(response fixtures.Team) model.Team {
 	}
 }
 
+func CreateTeamFromTeamInformation(infoRespose team.Information) model.Team {
+	response := infoRespose.Team
+
+	return model.Team{
+		ID:      response.ID,
+		Name:    response.Name,
+		Code:    &response.Code,
+		Country: &response.Country,
+		Logo:    response.Logo,
+	}
+}
+
 func CreateStandingFromResponse(response standings.Ranking, competitionID uint, season int) leaguem.Standing {
 	return leaguem.Standing{
 		Rank:          response.Rank,
