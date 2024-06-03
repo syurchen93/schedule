@@ -174,6 +174,8 @@ func createFixtureView(fixture league.Fixture, user *bot.User) FixtureView {
 		ID:           fixture.ID,
 		HomeTeamName: fixture.HomeTeam.Name,
 		AwayTeamName: fixture.AwayTeam.Name,
+		HomeTeamCode: *fixture.HomeTeam.Code,
+		AwayTeamCode: *fixture.AwayTeam.Code,
 		Date:         fixture.Date.In(userTime),
 		Score:        generateScoreString(fixture),
 		Status:       fixture.Status,

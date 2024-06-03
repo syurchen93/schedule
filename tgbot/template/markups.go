@@ -28,7 +28,7 @@ const (
 	CbdSetLang                   = "set_lang_"
 	CbdFixtureToggle             = "fixture_toggle_"
 
-	keyboardButtonTextLength = 30
+	keyboardButtonTextLength = 50
 )
 
 var TimeFormat = "Mon 2.01 15:04"
@@ -275,6 +275,42 @@ func remove(slice []models.InlineKeyboardButton, i int) []models.InlineKeyboardB
 }
 
 func generateFixtureButtonText(user model.User, fixture manager.FixtureView) string {
+	icon, score := generateIconAndScore(fixture, user)
+
+	buttonText := fmt.Sprintf(
+		"%s %s %s %s %s",
+		icon,
+		fixture.Date.Format(TimeFormat),
+		fixture.HomeTeamName,
+		score,
+		fixture.AwayTeamName,
+	)
+
+	if len(buttonText) > keyboardButtonTextLength && fixture.AwayTeamCode != "" {
+		buttonText = fmt.Sprintf(
+			"%s %s %s %s %s",
+			icon,
+			fixture.Date.Format(TimeFormat),
+			fixture.HomeTeamName,
+			score,
+			fixture.AwayTeamCode,
+		)
+	}
+	if len(buttonText) > keyboardButtonTextLength && fixture.HomeTeamCode != "" {
+		buttonText = fmt.Sprintf(
+			"%s %s %s %s %s",
+			icon,
+			fixture.Date.Format(TimeFormat),
+			fixture.HomeTeamCode,
+			score,
+			fixture.AwayTeamCode,
+		)
+	}
+
+	return buttonText
+}
+
+func generateIconAndScore(fixture manager.FixtureView, user model.User) (string, string) {
 	var icon string
 	var toggleIcon string
 	score := fixture.Score
@@ -304,27 +340,7 @@ func generateFixtureButtonText(user model.User, fixture manager.FixtureView) str
 		score = toggleScore
 	}
 
-	buttonText := fmt.Sprintf(
-		"%s %s %s : %s %s",
-		icon,
-		fixture.Date.Format(TimeFormat),
-		fixture.HomeTeamName,
-		score,
-		fixture.AwayTeamName,
-	)
-
-	if len(buttonText) > keyboardButtonTextLength && fixture.HomeTeamCode != "" && fixture.AwayTeamCode != "" {
-		buttonText = fmt.Sprintf(
-			"%s %s %s %s %s",
-			icon,
-			fixture.Date.Format(TimeFormat),
-			fixture.HomeTeamCode,
-			score,
-			fixture.AwayTeamCode,
-		)
-	}
-
-	return buttonText
+	return icon, score
 }
 
 func checkButtonBelongsToFixture(button models.InlineKeyboardButton, fixture manager.FixtureView) bool {

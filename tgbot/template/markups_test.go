@@ -2,13 +2,16 @@ package template
 
 import (
 	"testing"
+	"time"
 
 	model "schedule/model/bot"
+	"schedule/tgbot/manager"
 	"schedule/util"
 
 	"github.com/go-telegram/bot/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/syurchen93/api-football-client/common"
 )
 
 func TestTranslateKeyboardForUser(t *testing.T) {
@@ -45,6 +48,34 @@ func TestTranslateKeyboardForUser(t *testing.T) {
 			},
 			KeyboardSettingsGeneral,
 		),
+	)
+}
+
+func Test_generateFixtureButtonText(t *testing.T) {
+	user := model.User{
+		EnableSpoilers: false,
+	}
+	fixture := manager.FixtureView{
+		HomeTeamName: "Borussia Dortmund with extra words",
+		AwayTeamName: "Real Madrid with extra words",
+		Date:         time.Date(2021, 1, 1, 12, 0, 0, 0, time.UTC),
+		IsToggled:    false,
+		Status:       common.NotStarted,
+	}
+
+	assert.Equal(
+		t,
+		"🔔 Fri 1.01 12:00 Borussia Dortmund with extra words  Real Madrid with extra words",
+		generateFixtureButtonText(user, fixture),
+	)
+
+	fixture.AwayTeamCode = "RMA"
+	fixture.HomeTeamCode = "BVB"
+
+	assert.Equal(
+		t,
+		"🔔 Fri 1.01 12:00 BVB  RMA",
+		generateFixtureButtonText(user, fixture),
 	)
 }
 
