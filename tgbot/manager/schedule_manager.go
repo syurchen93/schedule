@@ -228,7 +228,6 @@ func getHydratedFixturesForUser(user *bot.User) []league.Fixture {
 	var fixtures []league.Fixture
 	var results []struct {
 		league.Fixture
-		HasUserAlert  bool `gorm:"column:has_user_alert"`
 		HomeIsUserFav bool `gorm:"column:home_is_user_fav"`
 		AwayIsUserFav bool `gorm:"column:away_is_user_fav"`
 	}

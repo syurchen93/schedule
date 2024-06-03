@@ -134,7 +134,7 @@ func GetFavTeamKeyboardForUser(favTeams []model.FavTeam, user model.User) *model
 		keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{
 			{
 				Text:         fmt.Sprintf("%s %s", "❌", favTeam.Team.Name),
-				CallbackData: fmt.Sprintf("%s%d", CbdSettingsFavTeamRemove, favTeam.ID),
+				CallbackData: fmt.Sprintf("%s%d", CbdSettingsFavTeamRemove, favTeam.Team.ID),
 			},
 		})
 	}

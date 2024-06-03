@@ -535,7 +535,7 @@ func userTextInputModeFavTeamHandler(ctx context.Context, b *bot.Bot, update *mo
 		}
 		return
 	}
-	manager.AddFavTeamForUser(user.ID, team.ID)
+	manager.AddFavTeamForUser(user, team.ID)
 	manager.ClearUserTextInputMode(user.ID)
 
 	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
