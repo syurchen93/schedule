@@ -222,17 +222,19 @@ func generateScoreString(fixture league.Fixture) string {
 
 func getHydratedFixturesForUser(user *bot.User) []league.Fixture {
 	var fixtures []league.Fixture
-	subquery := dbGorm.Table("alert").Select("1").Where("alert.fixture_id = fixture.id AND alert.user_id = ?", user.ID)
+
 	query := dbGorm.Joins("left join competition on competition.id = fixture.competition_id").
 		Joins("left join country on country.id = competition.country_id").
+		Joins("left join alert on alert.fixture_id = fixture.id AND alert.user_id = ?", user.ID).
 		Where("fixture.date > ?", time.Now().AddDate(0, 0, -DefaultDaysInPast)).
 		Where("fixture.date < ?", time.Now().AddDate(0, 0, DefaultDaysInFuture)).
 		Preload("HomeTeam").
 		Preload("AwayTeam").
 		Preload("Competition").
 		Preload("Competition.Country").
-		Select("fixture.*, CASE WHEN EXISTS(?) THEN true ELSE false END AS has_user_alert", subquery).
+		Select("fixture.*, CASE WHEN alert.id IS NOT NULL THEN true ELSE false END AS has_user_alert").
 		Order("fixture.date ASC")
+
 	if len(user.GetDisabledCountries()) > 0 {
 		query = query.Not("country_id", user.GetDisabledCountries())
 	}
@@ -242,6 +244,7 @@ func getHydratedFixturesForUser(user *bot.User) []league.Fixture {
 	}
 
 	query.Find(&fixtures)
+
 	return fixtures
 }
 
