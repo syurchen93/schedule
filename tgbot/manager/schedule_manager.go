@@ -39,16 +39,18 @@ type StandingView struct {
 }
 
 type FixtureView struct {
-	ID           int
-	HomeTeamName string
-	HomeTeamCode string
-	AwayTeamName string
-	AwayTeamCode string
-	Date         time.Time
-	Score        string
-	Status       common.FixtureStatus
-	HasAlert     bool
-	IsToggled    bool
+	ID            int
+	HomeTeamName  string
+	HomeTeamCode  string
+	IsHomeUserFav bool
+	AwayTeamName  string
+	AwayTeamCode  string
+	IsAwayUserFav bool
+	Date          time.Time
+	Score         string
+	Status        common.FixtureStatus
+	HasAlert      bool
+	IsToggled     bool
 }
 
 func (s StandingView) GetTeamNameWithCode() string {
@@ -171,15 +173,17 @@ func createFixtureView(fixture league.Fixture, user *bot.User) FixtureView {
 		userTime = time.UTC
 	}
 	return FixtureView{
-		ID:           fixture.ID,
-		HomeTeamName: fixture.HomeTeam.Name,
-		AwayTeamName: fixture.AwayTeam.Name,
-		HomeTeamCode: *fixture.HomeTeam.Code,
-		AwayTeamCode: *fixture.AwayTeam.Code,
-		Date:         fixture.Date.In(userTime),
-		Score:        generateScoreString(fixture),
-		Status:       fixture.Status,
-		HasAlert:     fixture.HasUserAlert,
+		ID:            fixture.ID,
+		HomeTeamName:  fixture.HomeTeam.Name,
+		HomeTeamCode:  *fixture.HomeTeam.Code,
+		IsHomeUserFav: fixture.HomeTeam.IsUserFav,
+		AwayTeamName:  fixture.AwayTeam.Name,
+		AwayTeamCode:  *fixture.AwayTeam.Code,
+		IsAwayUserFav: fixture.AwayTeam.IsUserFav,
+		Date:          fixture.Date.In(userTime),
+		Score:         generateScoreString(fixture),
+		Status:        fixture.Status,
+		HasAlert:      fixture.HasUserAlert,
 	}
 }
 
@@ -222,17 +226,25 @@ func generateScoreString(fixture league.Fixture) string {
 
 func getHydratedFixturesForUser(user *bot.User) []league.Fixture {
 	var fixtures []league.Fixture
+	var results []struct {
+		league.Fixture
+		HasUserAlert  bool `gorm:"column:has_user_alert"`
+		HomeIsUserFav bool `gorm:"column:home_is_user_fav"`
+		AwayIsUserFav bool `gorm:"column:away_is_user_fav"`
+	}
 
-	query := dbGorm.Joins("left join competition on competition.id = fixture.competition_id").
+	query := dbGorm.Table("fixture").Joins("left join competition on competition.id = fixture.competition_id").
 		Joins("left join country on country.id = competition.country_id").
 		Joins("left join alert on alert.fixture_id = fixture.id AND alert.user_id = ?", user.ID).
+		Joins("left join fav_team as home_fav on home_fav.team_id = fixture.home_team_id AND home_fav.user_id = ?", user.ID).
+		Joins("left join fav_team as away_fav on away_fav.team_id = fixture.away_team_id AND away_fav.user_id = ?", user.ID).
 		Where("fixture.date > ?", time.Now().AddDate(0, 0, -DefaultDaysInPast)).
 		Where("fixture.date < ?", time.Now().AddDate(0, 0, DefaultDaysInFuture)).
 		Preload("HomeTeam").
 		Preload("AwayTeam").
 		Preload("Competition").
 		Preload("Competition.Country").
-		Select("fixture.*, CASE WHEN alert.id IS NOT NULL THEN true ELSE false END AS has_user_alert").
+		Select("fixture.*, CASE WHEN alert.id IS NOT NULL THEN true ELSE false END AS has_user_alert, CASE WHEN home_fav.id IS NOT NULL THEN true ELSE false END AS home_is_user_fav, CASE WHEN away_fav.id IS NOT NULL THEN true ELSE false END AS away_is_user_fav").
 		Order("fixture.date ASC")
 
 	if len(user.GetDisabledCountries()) > 0 {
@@ -243,7 +255,13 @@ func getHydratedFixturesForUser(user *bot.User) []league.Fixture {
 		query = query.Not("competition_id", user.GetDisabledCompetitions())
 	}
 
-	query.Find(&fixtures)
+	query.Find(&results)
+
+	for _, result := range results {
+		result.HomeTeam.IsUserFav = result.HomeIsUserFav
+		result.AwayTeam.IsUserFav = result.AwayIsUserFav
+		fixtures = append(fixtures, result.Fixture)
+	}
 
 	return fixtures
 }
