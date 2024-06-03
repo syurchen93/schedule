@@ -20,6 +20,8 @@ const (
 	CbdSettingsUserAlertOffset   = "settings_user_alert_offset"
 	CbdSettingsUser              = "settings_user"
 	CbdSettingsFavTeam           = "settings_fav_team"
+	CbdSettingsFavTeamRemove     = "settings_fav_team_remove_"
+	CbdSettingsFavTeamAddStart   = "settings_fav_team_add_start"
 	CbdSettingsTimezone          = "settings_timezone"
 	CbdSettingsTimezoneInput     = "settings_timezone_input"
 	CbdSettingsTimezoneLocation  = "settings_timezone_location"
@@ -111,21 +113,41 @@ var ButtonRefreshSchedule = models.InlineKeyboardButton{
 	CallbackData: CbdSchedule,
 }
 
+func RemoveFavTeamFromCachedKeyboard(favTeamId int, originalKeyboard models.InlineKeyboardMarkup) *models.InlineKeyboardMarkup {
+	keyboard := originalKeyboard
+	for i, row := range keyboard.InlineKeyboard {
+		for j, button := range row {
+			if strings.HasSuffix(button.CallbackData, strconv.Itoa(favTeamId)) {
+				keyboard.InlineKeyboard[i] = remove(keyboard.InlineKeyboard[i], j)
+				break
+			}
+		}
+	}
+
+	return &keyboard
+}
+
 func GetFavTeamKeyboardForUser(favTeams []model.FavTeam, user model.User) *models.InlineKeyboardMarkup {
 	keyboard := &models.InlineKeyboardMarkup{}
 
 	for _, favTeam := range favTeams {
 		keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{
 			{
-				Text:         favTeam.Team.Name,
-				CallbackData: fmt.Sprintf("%s%d", CbdSettingsFavTeam, favTeam.ID),
+				Text:         fmt.Sprintf("%s %s", "❌", favTeam.Team.Name),
+				CallbackData: fmt.Sprintf("%s%d", CbdSettingsFavTeamRemove, favTeam.ID),
 			},
 		})
 	}
 
-	keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{ButtonBack})
+	buttonAdd := models.InlineKeyboardButton{
+		Text:         "FavTeamAddStart",
+		CallbackData: CbdSettingsFavTeamAddStart,
+	}
 
-	return TranslateKeyboardForUser(user, keyboard)
+	AppendTranslatedButtonToKeyboard(keyboard, buttonAdd, user)
+	AppendTranslatedButtonToKeyboard(keyboard, ButtonBack, user)
+
+	return keyboard
 }
 
 func GetUserSettingsKeyboardForUser(user model.User) *models.InlineKeyboardMarkup {

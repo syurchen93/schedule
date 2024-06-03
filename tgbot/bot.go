@@ -29,6 +29,7 @@ var supportedLocales = []string{"en", "ru", "de"}
 const (
 	UserTextInputModeCity        = "city"
 	UserTextInputModeAlertOffset = "alert_offset"
+	UserTextInputModeFavTeam     = "fav_team"
 )
 
 func main() {
@@ -63,6 +64,8 @@ func main() {
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsUser, bot.MatchTypeExact, settingsUserHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsTimezone, bot.MatchTypeExact, settingsUserTimezoneHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsFavTeam, bot.MatchTypeExact, settingsUserFavTeamHandler),
+		bot.WithCallbackQueryDataHandler(template.CbdSettingsFavTeamAddStart, bot.MatchTypeExact, settingsUserFavTeamAddHandler),
+		bot.WithCallbackQueryDataHandler(template.CbdSettingsFavTeamRemove, bot.MatchTypePrefix, settingsUserFavTeamRemoveHandler),
 
 		bot.WithCallbackQueryDataHandler(template.CbdSchedule, bot.MatchTypeExact, scheduleHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdFixtureToggle, bot.MatchTypePrefix, fixtureToggleHandler),
@@ -81,13 +84,67 @@ func main() {
 	b.Start(ctx)
 }
 
+func settingsUserFavTeamRemoveHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	answerCallbackQuery(ctx, b, update)
+
+	user := manager.GetOrCreateUser(ctx, b, update)
+	favTeamId, err := strconv.Atoi(update.CallbackQuery.Data[len(template.CbdSettingsFavTeamRemove):])
+	if nil != err {
+		panic(err)
+	}
+
+	manager.RemoveFavTeamForUser(user.ID, favTeamId)
+
+	msg := manager.GetCachedBotMessage(update.CallbackQuery.Message.Message.ID)
+
+	if msg != nil {
+		_, err = b.EditMessageReplyMarkup(ctx, &bot.EditMessageReplyMarkupParams{
+			ChatID:      update.CallbackQuery.Message.Message.Chat.ID,
+			MessageID:   update.CallbackQuery.Message.Message.ID,
+			ReplyMarkup: template.RemoveFavTeamFromCachedKeyboard(favTeamId, msg.ReplyMarkup),
+		})
+		if nil != err {
+			panic(err)
+		}
+		manager.CacheBotMessage(msg)
+
+		return
+	}
+
+	_, err = b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:      update.CallbackQuery.Message.Message.Chat.ID,
+		Text:        util.Translate(user.Locale, "SettingsFavTeamRemoveSuccess"),
+		ReplyMarkup: template.TranslateKeyboardForUser(*user, template.KeyboardToSchedule),
+	})
+	if nil != err {
+		panic(err)
+	}
+}
+
+func settingsUserFavTeamAddHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	answerCallbackQuery(ctx, b, update)
+
+	user := manager.GetOrCreateUser(ctx, b, update)
+	manager.SetUserTextInputMode(user.ID, UserTextInputModeFavTeam)
+
+	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+		DisableNotification: true,
+		ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
+		Text:                util.Translate(user.Locale, "SettingsFavTeamAddInput"),
+		ReplyMarkup:         template.TranslateKeyboardForUser(*user, template.KeyboardBack),
+	})
+	if nil != err {
+		panic(err)
+	}
+}
+
 func settingsUserFavTeamHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	answerCallbackQuery(ctx, b, update)
 
 	user := manager.GetOrCreateUser(ctx, b, update)
 	favTeams := manager.GetFavTeamsForUser(user.ID)
 
-	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+	msg, err := b.SendMessage(ctx, &bot.SendMessageParams{
 		DisableNotification: true,
 		ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
 		Text:                transateForUpdateUser("SettingsFavTeam", update),
@@ -96,7 +153,7 @@ func settingsUserFavTeamHandler(ctx context.Context, b *bot.Bot, update *models.
 	if nil != err {
 		panic(err)
 	}
-
+	manager.CacheBotMessage(msg)
 }
 
 func settingsUserAlertOffsetHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
@@ -244,7 +301,6 @@ func fixtureToggleHandler(ctx context.Context, b *bot.Bot, update *models.Update
 
 	originalMsg := manager.GetCachedBotMessage(update.CallbackQuery.Message.Message.ID)
 	if originalMsg == nil || originalMsg.ID == 0 {
-		fmt.Println("Original message not found")
 		competitionFixtures := manager.GetCompetitionFixturesAndToggleByFixtureId(user, fixtureId)
 		editedKeyboard = template.GetCompetitionFixturesKeyboardForUser(
 			*user,
@@ -458,6 +514,37 @@ func textHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		userTextInputModeCityHandler(ctx, b, update)
 	case UserTextInputModeAlertOffset:
 		userTextInputModeAlertOffsetHandler(ctx, b, update)
+	case UserTextInputModeFavTeam:
+		userTextInputModeFavTeamHandler(ctx, b, update)
+	}
+}
+
+func userTextInputModeFavTeamHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	user := manager.GetOrCreateUser(ctx, b, update)
+	favTeamInput := update.Message.Text
+
+	team := manager.FindTeamByUserInput(favTeamInput)
+	if team == nil {
+		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:      update.Message.Chat.ID,
+			Text:        util.Translate(user.Locale, "SettingsFavTeamAddNotFound"),
+			ReplyMarkup: template.TranslateKeyboardForUser(*user, template.KeyboardBack),
+		})
+		if nil != err {
+			panic(err)
+		}
+		return
+	}
+	manager.AddFavTeamForUser(user.ID, team.ID)
+	manager.ClearUserTextInputMode(user.ID)
+
+	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:      update.Message.Chat.ID,
+		Text:        util.Translate(user.Locale, "SettingsFavTeamAddSuccess", team.Name),
+		ReplyMarkup: template.TranslateKeyboardForUser(*user, template.KeyboardToSchedule),
+	})
+	if nil != err {
+		panic(err)
 	}
 }
 
