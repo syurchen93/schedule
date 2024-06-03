@@ -36,6 +36,7 @@ func Init() {
 		&model.Team{},
 
 		&bot.User{},
+		&bot.FavTeam{},
 		&bot.Alert{},
 	)
 	if err != nil {

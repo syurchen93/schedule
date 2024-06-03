@@ -19,6 +19,7 @@ const (
 	CbdSettingsAlert             = "settings_alert"
 	CbdSettingsUserAlertOffset   = "settings_user_alert_offset"
 	CbdSettingsUser              = "settings_user"
+	CbdSettingsFavTeam           = "settings_fav_team"
 	CbdSettingsTimezone          = "settings_timezone"
 	CbdSettingsTimezoneInput     = "settings_timezone_input"
 	CbdSettingsTimezoneLocation  = "settings_timezone_location"
@@ -62,11 +63,14 @@ var KeyboardSettingsGeneral = &models.InlineKeyboardMarkup{
 var KeyboardSettingsUser = &models.InlineKeyboardMarkup{
 	InlineKeyboard: [][]models.InlineKeyboardButton{
 		{
+			{Text: "SettingsFavTeam", CallbackData: CbdSettingsFavTeam},
+		},
+		{
 			{Text: "SettingsTimezone", CallbackData: CbdSettingsTimezone},
 			{Text: "SettingsAlertOffset", CallbackData: CbdSettingsUserAlertOffset},
 		},
 		{
-			{Text: "Back", CallbackData: CbdSettings},
+			ButtonBack,
 		},
 	},
 }
@@ -74,7 +78,7 @@ var KeyboardSettingsUser = &models.InlineKeyboardMarkup{
 var KeyboardBack = &models.InlineKeyboardMarkup{
 	InlineKeyboard: [][]models.InlineKeyboardButton{
 		{
-			{Text: "Back", CallbackData: CbdSettings},
+			ButtonBack,
 		},
 	},
 }
@@ -85,6 +89,11 @@ var KeyboardToSchedule = &models.InlineKeyboardMarkup{
 			ButtonSchedule,
 		},
 	},
+}
+
+var ButtonBack = models.InlineKeyboardButton{
+	Text:         "Back",
+	CallbackData: CbdSettings,
 }
 
 var ButtonSettings = models.InlineKeyboardButton{
@@ -100,6 +109,23 @@ var ButtonSchedule = models.InlineKeyboardButton{
 var ButtonRefreshSchedule = models.InlineKeyboardButton{
 	Text:         "RefreshSchedule",
 	CallbackData: CbdSchedule,
+}
+
+func GetFavTeamKeyboardForUser(favTeams []model.FavTeam, user model.User) *models.InlineKeyboardMarkup {
+	keyboard := &models.InlineKeyboardMarkup{}
+
+	for _, favTeam := range favTeams {
+		keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{
+			{
+				Text:         favTeam.Team.Name,
+				CallbackData: fmt.Sprintf("%s%d", CbdSettingsFavTeam, favTeam.ID),
+			},
+		})
+	}
+
+	keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{ButtonBack})
+
+	return TranslateKeyboardForUser(user, keyboard)
 }
 
 func GetUserSettingsKeyboardForUser(user model.User) *models.InlineKeyboardMarkup {
@@ -179,12 +205,7 @@ func GetUserCompetitonSettingsKyboard(user *model.User, compSettings []manager.C
 			},
 		})
 	}
-	keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{
-		{
-			Text:         util.Translate(user.Locale, "Back"),
-			CallbackData: CbdSettings,
-		},
-	})
+	AppendTranslatedButtonToKeyboard(keyboard, ButtonBack, *user)
 
 	return keyboard
 }
@@ -211,12 +232,7 @@ func GetUserCountrySettingsKyboard(user *model.User, countrySettings []manager.C
 			},
 		})
 	}
-	keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{
-		{
-			Text:         util.Translate(user.Locale, "Back"),
-			CallbackData: "settings",
-		},
-	})
+	AppendTranslatedButtonToKeyboard(keyboard, ButtonBack, *user)
 
 	return keyboard
 }

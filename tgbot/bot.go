@@ -62,6 +62,7 @@ func main() {
 
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsUser, bot.MatchTypeExact, settingsUserHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsTimezone, bot.MatchTypeExact, settingsUserTimezoneHandler),
+		bot.WithCallbackQueryDataHandler(template.CbdSettingsFavTeam, bot.MatchTypeExact, settingsUserFavTeamHandler),
 
 		bot.WithCallbackQueryDataHandler(template.CbdSchedule, bot.MatchTypeExact, scheduleHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdFixtureToggle, bot.MatchTypePrefix, fixtureToggleHandler),
@@ -78,6 +79,24 @@ func main() {
 	})
 
 	b.Start(ctx)
+}
+
+func settingsUserFavTeamHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	answerCallbackQuery(ctx, b, update)
+
+	user := manager.GetOrCreateUser(ctx, b, update)
+	favTeams := manager.GetFavTeamsForUser(user.ID)
+
+	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+		DisableNotification: true,
+		ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
+		Text:                transateForUpdateUser("SettingsFavTeam", update),
+		ReplyMarkup:         template.GetFavTeamKeyboardForUser(favTeams, *user),
+	})
+	if nil != err {
+		panic(err)
+	}
+
 }
 
 func settingsUserAlertOffsetHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
