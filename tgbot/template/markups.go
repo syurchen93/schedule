@@ -65,11 +65,11 @@ var KeyboardSettingsGeneral = &models.InlineKeyboardMarkup{
 var KeyboardSettingsUser = &models.InlineKeyboardMarkup{
 	InlineKeyboard: [][]models.InlineKeyboardButton{
 		{
-			{Text: "SettingsFavTeam", CallbackData: CbdSettingsFavTeam},
-		},
-		{
 			{Text: "SettingsTimezone", CallbackData: CbdSettingsTimezone},
 			{Text: "SettingsAlertOffset", CallbackData: CbdSettingsUserAlertOffset},
+		},
+		{
+			{Text: "SettingsFavTeam", CallbackData: CbdSettingsFavTeam},
 		},
 		{
 			ButtonBack,

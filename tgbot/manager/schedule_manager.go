@@ -142,6 +142,7 @@ func CreateCompetitionFixtureViewFromAlers(alerts []bot.Alert) []CompetitionView
 
 	for _, alert := range alerts {
 		fixture := alert.Fixture
+		fixture.HasUserAlert = true
 		var compFound bool
 		fixtureView := createFixtureView(fixture, &alert.User)
 		for i, comp := range compViews {
