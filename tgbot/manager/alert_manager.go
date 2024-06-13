@@ -3,6 +3,7 @@ package manager
 import (
 	"context"
 	"fmt"
+	"time"
 
 	model "schedule/model/bot"
 	"schedule/util"
@@ -23,13 +24,14 @@ func GetAlertCompetitionViewsForUser(userId int) []CompetitionView {
 	var alerts []model.Alert
 
 	dbGorm.
+		Joins("join fixture on alert.fixture_id = fixture.id").
 		Preload("Fixture").
 		Preload("User").
 		Preload("Fixture.HomeTeam").
 		Preload("Fixture.AwayTeam").
 		Preload("Fixture.Competition").
 		Preload("Fixture.Competition.Country").
-		Where("user_id = ? and is_fired = 0", userId).
+		Where("user_id = ? and is_fired = 0 AND fixture.date < ?", userId, time.Now().AddDate(0, 0, DefaultDaysInFuture)).
 		Find(&alerts)
 
 	return CreateCompetitionFixtureViewFromAlers(alerts)
