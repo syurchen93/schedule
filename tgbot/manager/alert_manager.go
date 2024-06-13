@@ -32,6 +32,7 @@ func GetAlertCompetitionViewsForUser(userId int) []CompetitionView {
 		Preload("Fixture.Competition").
 		Preload("Fixture.Competition.Country").
 		Where("user_id = ? and is_fired = 0 AND fixture.date < ?", userId, time.Now().AddDate(0, 0, DefaultDaysInFuture)).
+		Order("fixture.date ASC").
 		Find(&alerts)
 
 	return CreateCompetitionFixtureViewFromAlers(alerts)
