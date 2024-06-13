@@ -67,7 +67,19 @@ func checkIfUpToDateImageExists(filePath string) bool {
 }
 
 func createCompetitionStandingsImage(standings []StandingsData, imgPath string, locale string) error {
-	maxLengths, totalStandings := generateStandingDimensions(standings)
+	headers := []string{
+		util.Translate(locale, "StandingRank"),
+		util.Translate(locale, "StandingTeam"),
+		util.Translate(locale, "StandingPoints"),
+		util.Translate(locale, "StandingPlayed"),
+		util.Translate(locale, "StandingWon"),
+		util.Translate(locale, "StandingDrawn"),
+		util.Translate(locale, "StandingLost"),
+		util.Translate(locale, "StandingGoalsDiff"),
+		util.Translate(locale, "StandingForm"),
+	}
+
+	maxLengths, totalStandings := generateStandingsDimensions(standings, headers)
 
 	totalWidth := 0
 	for _, length := range maxLengths {
@@ -75,7 +87,7 @@ func createCompetitionStandingsImage(standings []StandingsData, imgPath string, 
 	}
 
 	width := totalWidth * CharWidth
-	height := totalStandings * (RowHeight + Padding/2)
+	height := totalStandings * (RowHeight + Padding)
 
 	dc := gg.NewContext(width, height)
 
@@ -94,17 +106,6 @@ func createCompetitionStandingsImage(standings []StandingsData, imgPath string, 
 		y += RowHeight
 
 		if id == 0 {
-			headers := []string{
-				util.Translate(locale, "StandingRank"),
-				util.Translate(locale, "StandingTeam"),
-				util.Translate(locale, "StandingPoints"),
-				util.Translate(locale, "StandingPlayed"),
-				util.Translate(locale, "StandingWon"),
-				util.Translate(locale, "StandingDrawn"),
-				util.Translate(locale, "StandingLost"),
-				util.Translate(locale, "StandingGoalsDiff"),
-				util.Translate(locale, "StandingForm"),
-			}
 			x := Padding
 			for i, header := range headers {
 				if i == 1 {
@@ -227,9 +228,11 @@ func downloadImage(url, filePath string) error {
 	return nil
 }
 
-func generateStandingDimensions(standings []StandingsData) ([]int, int) {
+func generateStandingsDimensions(standings []StandingsData, headers []string) ([]int, int) {
 	maxLengths := make([]int, 9)
 	totalStandings := 0
+
+	addToMaxLengths(maxLengths, headers)
 	for _, group := range standings {
 		totalStandings += len(group.Standings)
 		for _, standing := range group.Standings {
@@ -244,13 +247,18 @@ func generateStandingDimensions(standings []StandingsData) ([]int, int) {
 				fmt.Sprintf("%d", standing.GoalsDiff),
 				standing.Form,
 			}
-			for i, cell := range cells {
-				if len(cell) > maxLengths[i] {
-					maxLengths[i] = len(cell)
-				}
-			}
+			addToMaxLengths(maxLengths, cells)
 		}
 	}
 
 	return maxLengths, totalStandings
+}
+
+func addToMaxLengths(maxLengths []int, cells []string) {
+	for i, cell := range cells {
+		totalLen := len(cell)
+		if totalLen > maxLengths[i] {
+			maxLengths[i] = totalLen
+		}
+	}
 }
