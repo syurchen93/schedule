@@ -7,14 +7,14 @@ import (
 
 type Standing struct {
 	ID            uint        `gorm:"primaryKey"`
-	TeamID        uint        `gorm:"uniqueIndex:idx_team_competition"`
+	TeamID        uint        `gorm:"uniqueIndex:idx_team_competition_group"`
 	Team          model.Team  `gorm:"foreignKey:TeamID"`
-	CompetitionID uint        `gorm:"uniqueIndex:idx_team_competition"`
+	CompetitionID uint        `gorm:"uniqueIndex:idx_team_competition_group"`
 	Competition   Competition `gorm:"foreignKey:CompetitionID"`
 	Rank          int         `gorm:"type:int"`
 	Points        int         `gorm:"type:int"`
 	GoalsDiff     int         `gorm:"type:int"`
-	Group         string      `gorm:"type:varchar(100)"`
+	Group         string      `gorm:"type:varchar(100);uniqueIndex:idx_team_competition_group"`
 	Form          string      `gorm:"type:varchar(100)"`
 	Status        string      `gorm:"type:varchar(100)"`
 	Description   string      `gorm:"type:varchar(255)"`
