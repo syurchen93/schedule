@@ -73,3 +73,12 @@ func RemoveAlertsForUserFavTeam(user *bot.User, teamId int) {
 		dbGorm.Delete(&alert)
 	}
 }
+
+func GetAllUsersWithFavTeams() []bot.User {
+	var users []bot.User
+	dbGorm.
+		Joins("join fav_team on fav_team.user_id = user.id").
+		Where("fav_team.id IS NOT NULL").
+		Find(&users)
+	return users
+}
