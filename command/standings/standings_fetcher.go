@@ -78,7 +78,8 @@ func fetchAndPersistStandings() {
 				teamCreatedCount++
 			}
 			standing := transformer.CreateStandingFromResponse(ranking, competition.ID, int(competition.CurrentSeason))
-			result = dbGorm.Where("team_id = ? AND competition_id = ?", standing.TeamID, standing.CompetitionID).Assign(standing).FirstOrCreate(&standing)
+			result = dbGorm.Where("team_id = ? AND competition_id = ? and `group` = ?", standing.TeamID, standing.CompetitionID, standing.Group).
+				Assign(standing).FirstOrCreate(&standing)
 			if result.Error != nil {
 				errorCount++
 			}
