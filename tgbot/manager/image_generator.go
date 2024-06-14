@@ -75,7 +75,7 @@ func createCompetitionStandingsImage(standings []StandingsData, imgPath string, 
 		util.Translate(locale, "StandingWon"),
 		util.Translate(locale, "StandingDrawn"),
 		util.Translate(locale, "StandingLost"),
-		util.Translate(locale, "StandingGoalsDiff"),
+		util.Translate(locale, "StandingGoalDiff"),
 		util.Translate(locale, "StandingForm"),
 	}
 
