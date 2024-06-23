@@ -120,6 +120,8 @@ func GetCompetitionFixturesAndToggleByFixtureId(user *bot.User, fixtureId int) C
 
 func GetToggleFixtureViewByFixtureId(user *bot.User, fixtureId int) FixtureView {
 	var fixture league.Fixture
+	var userFavTeamIDs []int
+
 	dbGorm.
 		Preload("HomeTeam").
 		Preload("AwayTeam").
@@ -130,7 +132,12 @@ func GetToggleFixtureViewByFixtureId(user *bot.User, fixtureId int) FixtureView 
 	if fixture.ID == 0 {
 		panic(fmt.Errorf("fixture with id %d not found", fixtureId))
 	}
+
 	view := createFixtureView(fixture, user)
+	dbGorm.Table("fav_team").Select("team_id").Where("user_id = ?", user.ID).Scan(&userFavTeamIDs)
+
+	view.IsHomeUserFav = contains(userFavTeamIDs, fixture.HomeTeam.ID)
+	view.IsAwayUserFav = contains(userFavTeamIDs, fixture.AwayTeam.ID)
 	view.IsToggled = true
 	toggleFixtureViewAlertIfNeeded(user, view)
 
@@ -316,4 +323,13 @@ func buildStandingDatas(standings []league.Standing) []StandingsData {
 	}
 
 	return standingsData
+}
+
+func contains(slice []int, item int) bool {
+	for _, v := range slice {
+		if v == item {
+			return true
+		}
+	}
+	return false
 }
