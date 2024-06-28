@@ -9,6 +9,7 @@ import (
 
 	"log"
 	"os"
+	"time"
 
 	"gorm.io/gorm"
 
@@ -60,10 +61,11 @@ func fetchAndPersistTeamsWithMissingData() {
 		if err != nil {
 			errorCount++
 			log.Printf("Error fetching teams for competition %s: %s", competition.Name, err)
-			continue
+			break
 		}
 		for _, team := range teams {
 			teamModel := transformer.CreateTeamFromTeamInformation(team.(response.Information))
+			teamModel.TriedToFetchCodeAt = time.Now()
 			result := dbGorm.Where("id = ?", teamModel.ID).Assign(teamModel).FirstOrCreate(&teamModel)
 			if result.Error != nil {
 				errorCount++
@@ -84,7 +86,7 @@ func fetchCompetitionWithMostTeamsWithMissingData() *league.Competition {
 		Select("competition.*, COUNT(DISTINCT team.id) as team_count").
 		Joins("JOIN fixture ON fixture.competition_id = competition.id").
 		Joins("JOIN team ON team.id = fixture.home_team_id OR team.id = fixture.away_team_id").
-		Where("team.code = '' OR team.country = ''").
+		Where("(team.code = '' OR team.country = '') AND team.tried_to_fetch_code_at IS NULL").
 		Group("competition.id").
 		Order("team_count DESC").
 		First(&competition).Error
