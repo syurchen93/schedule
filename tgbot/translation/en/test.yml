@@ -23,6 +23,8 @@ SettingsTimezoneInfo: "If your local time differs from the time in the schedule,
 SettingsTimezoneCityNotFound: "No city found. Try again"
 SettingsTimezoneCitySuccess: "City successfully found. Your timezone is set to `%s`"
 SettingsUserAlertOffsetInfo: "You are currently receiving an alert %d minutes before the match. Send the bot the number of minutes, for example, `30`, to change this value"
+SettingsShare: "🔗 Share/Subscribe"
+SettingsShareSubscriptionsInfo: "You can subscribe and receive the same alerts as your friends. Just enter your friend's nickname or send him your nickname `%s` so he can subscribe to you."
 RefreshSchedule: "🔄 Refresh"
 ShowStandings: "📊 Standings"
 Enable: "✅ Show"

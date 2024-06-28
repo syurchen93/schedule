@@ -38,6 +38,7 @@ func Init() {
 		&bot.User{},
 		&bot.FavTeam{},
 		&bot.Alert{},
+		&bot.UserShare{},
 	)
 	if err != nil {
 		panic("DB Migration Error")

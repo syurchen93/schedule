@@ -25,6 +25,8 @@ const (
 	CbdSettingsTimezone          = "settings_timezone"
 	CbdSettingsTimezoneInput     = "settings_timezone_input"
 	CbdSettingsTimezoneLocation  = "settings_timezone_location"
+	CbdSettingsShareManage       = "settings_share_manage"
+	CbdSettingsShareRemove       = "settings_share_remove"
 	CbdSettings                  = "settings"
 	CbdSchedule                  = "schedule"
 	CbdShowStandings             = "standings_"
@@ -70,6 +72,7 @@ var KeyboardSettingsUser = &models.InlineKeyboardMarkup{
 		},
 		{
 			{Text: "SettingsFavTeam", CallbackData: CbdSettingsFavTeam},
+			{Text: "SettingsShare", CallbackData: CbdSettingsShareManage},
 		},
 		{
 			ButtonBack,
@@ -111,6 +114,23 @@ var ButtonSchedule = models.InlineKeyboardButton{
 var ButtonRefreshSchedule = models.InlineKeyboardButton{
 	Text:         "RefreshSchedule",
 	CallbackData: CbdSchedule,
+}
+
+func GetShareAlertsKeyboardForUser(userShares []model.UserShare, user model.User) *models.InlineKeyboardMarkup {
+	keyboard := &models.InlineKeyboardMarkup{}
+
+	for _, userShare := range userShares {
+		keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{
+			{
+				Text:         fmt.Sprintf("❌ %s", userShare.SourceUser.Username),
+				CallbackData: fmt.Sprintf("%s%d", CbdSettingsShareRemove, userShare.ID),
+			},
+		})
+	}
+
+	AppendTranslatedButtonToKeyboard(keyboard, ButtonBack, user)
+
+	return keyboard
 }
 
 func RemoveFavTeamFromCachedKeyboard(favTeamId int, originalKeyboard models.InlineKeyboardMarkup) *models.InlineKeyboardMarkup {

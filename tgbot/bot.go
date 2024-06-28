@@ -30,6 +30,7 @@ const (
 	UserTextInputModeCity        = "city"
 	UserTextInputModeAlertOffset = "alert_offset"
 	UserTextInputModeFavTeam     = "fav_team"
+	UserTextInputModeAlertShare  = "alert_share"
 )
 
 func main() {
@@ -66,6 +67,7 @@ func main() {
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsFavTeam, bot.MatchTypeExact, settingsUserFavTeamHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsFavTeamAddStart, bot.MatchTypeExact, settingsUserFavTeamAddHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdSettingsFavTeamRemove, bot.MatchTypePrefix, settingsUserFavTeamRemoveHandler),
+		bot.WithCallbackQueryDataHandler(template.CbdSettingsShareManage, bot.MatchTypeExact, settingsUserShareManageHandler),
 
 		bot.WithCallbackQueryDataHandler(template.CbdSchedule, bot.MatchTypeExact, scheduleHandler),
 		bot.WithCallbackQueryDataHandler(template.CbdFixtureToggle, bot.MatchTypePrefix, fixtureToggleHandler),
@@ -82,6 +84,27 @@ func main() {
 	})
 
 	b.Start(ctx)
+}
+
+func settingsUserShareManageHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	answerCallbackQuery(ctx, b, update)
+
+	user := manager.GetOrCreateUser(ctx, b, update)
+	userShares, err := manager.GetShareSubscriptionsForUser(user.ID)
+	if nil != err {
+		panic(err)
+	}
+
+	_, err = b.SendMessage(ctx, &bot.SendMessageParams{
+		DisableNotification: true,
+		ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
+		Text:                util.Translate(user.Locale, "SettingsShareSubscriptionsInfo", user.Username),
+		ReplyMarkup:         template.GetShareAlertsKeyboardForUser(userShares, *user),
+	})
+	if nil != err {
+		panic(err)
+	}
+	manager.SetUserTextInputMode(user.ID, UserTextInputModeAlertShare)
 }
 
 func settingsUserFavTeamRemoveHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
@@ -516,7 +539,31 @@ func textHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		userTextInputModeAlertOffsetHandler(ctx, b, update)
 	case UserTextInputModeFavTeam:
 		userTextInputModeFavTeamHandler(ctx, b, update)
+	case UserTextInputModeAlertShare:
+		userTextInputModeAlertShareHandler(ctx, b, update)
 	}
+}
+
+func userTextInputModeAlertShareHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	user := manager.GetOrCreateUser(ctx, b, update)
+	subUsername := update.Message.Text
+
+	err := manager.SubUserByTargetUsername(user, subUsername)
+
+	if nil != err {
+		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:      update.Message.Chat.ID,
+			Text:        util.Translate(user.Locale, "SettingsAlertShareNotFound"),
+			ReplyMarkup: template.TranslateKeyboardForUser(*user, template.KeyboardBack),
+		})
+		if nil != err {
+			panic(err)
+		}
+		manager.SetUserTextInputMode(user.ID, UserTextInputModeAlertShare)
+		return
+	}
+
+	// todo edit keyboard, add new sub
 }
 
 func userTextInputModeFavTeamHandler(ctx context.Context, b *bot.Bot, update *models.Update) {

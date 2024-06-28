@@ -23,6 +23,8 @@ SettingsTimezoneInfo: "Wenn Ihre lokale Zeit von der Zeit im Spielplan abweicht,
 SettingsTimezoneCityNotFound: "Keine Stadt gefunden. Versuchen Sie es erneut"
 SettingsTimezoneCitySuccess: "Deine Stadt wurde erfolgreich gefunden. Ihre Zeitzone ist auf `%s` eingestellt"
 SettingsUserAlertOffsetInfo: "Du erhältst derzeit eine Benachrichtigung %d Minuten vor dem Spiel. Senden Sie dem Bot die Anzahl der Minuten, z. B. `30`, um diesen Wert zu ändern"
+SettingsShare: "🔗 Teilen/Abonnieren"
+SettingsShareSubscriptionsInfo: "Du kannst dich abonnieren und die gleichen Benachrichtigungen wie deine Freunde erhalten. Gib einfach den Benutzernamen deines Freundes ein oder sende ihm deinen Benutzernamen `%s`, damit er dich abonnieren kann."
 RefreshSchedule: "🔄 Aktualisieren"
 ShowStandings: "📊 Tabelle"
 Enable: "✅ Anzeigen"
