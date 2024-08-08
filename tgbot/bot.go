@@ -245,8 +245,8 @@ func settingsAlertHandler(ctx context.Context, b *bot.Bot, update *models.Update
 		keyboard := template.GetCompetitionFixturesKeyboardForUser(*user, compView)
 		if i == len(alertCompViews)-1 {
 			fmt.Println("Adding refresh and settings buttons")
-			template.AppendTranslatedButtonToKeyboard(keyboard, template.ButtonSettings, *user)
-			template.AppendTranslatedButtonToKeyboard(keyboard, template.ButtonSchedule, *user)
+			template.AppendTranslatedButtonToKeyboard(keyboard, template.ButtonSettings, *user, 0)
+			template.AppendTranslatedButtonToKeyboard(keyboard, template.ButtonSchedule, *user, 0)
 		}
 		msg, err := b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:              update.CallbackQuery.Message.Message.Chat.ID,

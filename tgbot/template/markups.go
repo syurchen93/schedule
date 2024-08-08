@@ -178,13 +178,13 @@ func GetUserSettingsKeyboardForUser(user model.User) *models.InlineKeyboardMarku
 	return TranslateKeyboardForUser(user, keyboard)
 }
 
-func AppendTranslatedButtonToKeyboard(keyboard *models.InlineKeyboardMarkup, button models.InlineKeyboardButton, user model.User) {
-	AppendButtonToKeyboard(keyboard, translateButtonForUser(user, button))
+func AppendTranslatedButtonToKeyboard(keyboard *models.InlineKeyboardMarkup, button models.InlineKeyboardButton, user model.User, preserveButtons ...int) {
+	AppendButtonToKeyboard(keyboard, translateButtonForUser(user, button), preserveButtons...)
 }
 
-func AppendButtonToKeyboard(keyboard *models.InlineKeyboardMarkup, button models.InlineKeyboardButton) {
+func AppendButtonToKeyboard(keyboard *models.InlineKeyboardMarkup, button models.InlineKeyboardButton, preserveButtons ...int) {
 	if len(keyboard.InlineKeyboard) > keyboardMaxButtonCount {
-		keyboard.InlineKeyboard = removeButtonBlock(keyboard.InlineKeyboard, 0)
+		keyboard.InlineKeyboard = removeButtonBlock(keyboard.InlineKeyboard, findSmallestMissingInt(preserveButtons))
 	}
 
 	keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{button})
@@ -436,4 +436,19 @@ func generateIconAndScore(fixture manager.FixtureView, user model.User) (string,
 
 func checkButtonBelongsToFixture(button models.InlineKeyboardButton, fixture manager.FixtureView) bool {
 	return strings.HasSuffix(button.CallbackData, strconv.Itoa(fixture.ID))
+}
+
+func findSmallestMissingInt(nums []int) int {
+	for i := 0; ; i++ {
+		found := false
+		for _, num := range nums {
+			if num == i {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return i
+		}
+	}
 }
