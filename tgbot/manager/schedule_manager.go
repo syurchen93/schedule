@@ -274,7 +274,7 @@ func getHydratedFixturesForUser(user *bot.User) []league.Fixture {
 		query = query.Not("competition_id", user.GetDisabledCompetitions())
 	}
 
-	query.Scan(&results)
+	query.Find(&results)
 
 	for _, result := range results {
 		result.HomeTeam.IsUserFav = result.HomeIsUserFav
