@@ -246,8 +246,8 @@ func settingsAlertHandler(ctx context.Context, b *bot.Bot, update *models.Update
 	for i, compView := range alertCompViews {
 		keyboard := template.GetCompetitionFixturesKeyboardForUser(*user, compView)
 		if i == len(alertCompViews)-1 {
-			template.AppendTranslatedButtonToKeyboard(keyboard, template.ButtonSettings, *user, 0)
-			template.AppendTranslatedButtonToKeyboard(keyboard, template.ButtonSchedule, *user, 0)
+			template.AppendTranslatedButtonToKeyboard(keyboard, template.ButtonSettings, *user)
+			template.AppendTranslatedButtonToKeyboard(keyboard, template.ButtonSchedule, *user)
 		}
 		msg, err := b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
@@ -352,8 +352,8 @@ func scheduleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	for i, compView := range competitions {
 		replyMarkup := template.GetCompetitionFixturesKeyboardForUser(*user, compView)
 		if i == len(competitions)-1 {
-			template.AppendTranslatedButtonToKeyboard(replyMarkup, template.ButtonSettings, *user)
-			template.AppendTranslatedButtonToKeyboard(replyMarkup, template.ButtonRefreshSchedule, *user)
+			template.AppendTranslatedButtonToKeyboard(replyMarkup, template.ButtonSettings, *user, 0)
+			template.AppendTranslatedButtonToKeyboard(replyMarkup, template.ButtonRefreshSchedule, *user, 0)
 		}
 		msg, err := b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
