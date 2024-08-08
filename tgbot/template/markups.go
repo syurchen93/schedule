@@ -34,6 +34,7 @@ const (
 	CbdFixtureToggle             = "fixture_toggle_"
 
 	keyboardButtonTextLength = 50
+	keyboardMaxButtonCount   = 19
 )
 
 var TimeFormat = "Mon 2.01 15:04"
@@ -181,6 +182,10 @@ func AppendTranslatedButtonToKeyboard(keyboard *models.InlineKeyboardMarkup, but
 }
 
 func AppendButtonToKeyboard(keyboard *models.InlineKeyboardMarkup, button models.InlineKeyboardButton) {
+	if len(keyboard.InlineKeyboard) > keyboardMaxButtonCount {
+		keyboard.InlineKeyboard[0] = remove(keyboard.InlineKeyboard[0], 0)
+	}
+
 	keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{button})
 }
 
