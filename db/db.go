@@ -23,8 +23,6 @@ func InitDbOrPanic() *gorm.DB {
 }
 
 func InitDB() (*gorm.DB, error) {
-	CloseDB()
-
 	dsn := util.GetEnv("DB_DSN")
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
