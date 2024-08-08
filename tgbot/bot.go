@@ -38,6 +38,7 @@ func main() {
 	util.InitCache(time.Hour, 10_000)
 	manager.InitImageGenerator("tgbot/images/")
 	util.InitGoogleMapsClient(ctx, util.GetEnv("GOOGLE_MAPS_API_KEY"))
+	fmt.Println("Dependencies initialized")
 
 	opts := []bot.Option{
 		bot.WithDefaultHandler(defaultHandler),
@@ -75,6 +76,7 @@ func main() {
 	timer.Every(AlertIntervalSeconds*time.Second, func() bool {
 		return manager.GetAndFireAlerts(ctx, b)
 	})
+	fmt.Println("Starting bot")
 
 	b.Start(ctx)
 }
@@ -244,7 +246,6 @@ func settingsAlertHandler(ctx context.Context, b *bot.Bot, update *models.Update
 	for i, compView := range alertCompViews {
 		keyboard := template.GetCompetitionFixturesKeyboardForUser(*user, compView)
 		if i == len(alertCompViews)-1 {
-			fmt.Println("Adding refresh and settings buttons")
 			template.AppendTranslatedButtonToKeyboard(keyboard, template.ButtonSettings, *user, 0)
 			template.AppendTranslatedButtonToKeyboard(keyboard, template.ButtonSchedule, *user, 0)
 		}

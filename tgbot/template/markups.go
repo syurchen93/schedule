@@ -184,7 +184,12 @@ func AppendTranslatedButtonToKeyboard(keyboard *models.InlineKeyboardMarkup, but
 
 func AppendButtonToKeyboard(keyboard *models.InlineKeyboardMarkup, button models.InlineKeyboardButton, preserveButtons ...int) {
 	if len(keyboard.InlineKeyboard) > keyboardMaxButtonCount {
-		keyboard.InlineKeyboard = removeButtonBlock(keyboard.InlineKeyboard, findSmallestMissingInt(preserveButtons))
+		keyboardIdToRemove := findSmallestMissingInt(preserveButtons)
+		fmt.Println("Removing keyboard block", keyboardIdToRemove, keyboard.InlineKeyboard[keyboardIdToRemove][0].Text, preserveButtons)
+		keyboard.InlineKeyboard = removeButtonBlock(
+			keyboard.InlineKeyboard,
+			keyboardIdToRemove,
+		)
 	}
 
 	keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{button})
