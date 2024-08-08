@@ -12,7 +12,6 @@ import (
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 
-	"schedule/db"
 	"schedule/tgbot/manager"
 	"schedule/tgbot/template"
 	"schedule/util"
@@ -668,7 +667,6 @@ func transateForUpdateUser(key string, update *models.Update) string {
 }
 
 func answerCallbackQuery(ctx context.Context, b *bot.Bot, update *models.Update) {
-	db.CloseDB()
 	if (update.CallbackQuery == nil) || (update.CallbackQuery.ID == "") {
 		return
 	}
