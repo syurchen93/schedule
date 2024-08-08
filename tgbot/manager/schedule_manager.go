@@ -179,26 +179,26 @@ func CreateCompetitionFixtureViewFromAlers(alerts []bot.Alert) []CompetitionView
 }
 
 func createFixtureView(fixture league.Fixture, user *bot.User) FixtureView {
-	var homeTeamCode, awayTeamCode *string
+	var homeTeamCode, awayTeamCode string
 
 	userTime, err := time.LoadLocation(user.Timezone)
 	if err != nil {
 		userTime = time.UTC
 	}
 	if fixture.HomeTeam.Code != nil {
-		homeTeamCode = fixture.HomeTeam.Code
+		homeTeamCode = *fixture.HomeTeam.Code
 	}
 	if fixture.AwayTeam.Code != nil {
-		awayTeamCode = fixture.AwayTeam.Code
+		awayTeamCode = *fixture.AwayTeam.Code
 	}
 
 	return FixtureView{
 		ID:            fixture.ID,
 		HomeTeamName:  fixture.HomeTeam.Name,
-		HomeTeamCode:  *homeTeamCode,
+		HomeTeamCode:  homeTeamCode,
 		IsHomeUserFav: fixture.HomeTeam.IsUserFav,
 		AwayTeamName:  fixture.AwayTeam.Name,
-		AwayTeamCode:  *awayTeamCode,
+		AwayTeamCode:  awayTeamCode,
 		IsAwayUserFav: fixture.AwayTeam.IsUserFav,
 		Date:          fixture.Date.In(userTime),
 		Score:         generateScoreString(fixture),
