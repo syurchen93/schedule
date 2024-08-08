@@ -23,6 +23,7 @@ func InitDbOrPanic() *gorm.DB {
 }
 
 func InitDB() (*gorm.DB, error) {
+	CloseDB()
 
 	dsn := util.GetEnv("DB_DSN")
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
@@ -53,4 +54,18 @@ func InitDB() (*gorm.DB, error) {
 	}
 
 	return db, nil
+}
+
+func CloseDB() {
+	if db == nil {
+		return
+	}
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		panic(err)
+	}
+	if err := sqlDB.Close(); err != nil {
+		panic(err)
+	}
 }
