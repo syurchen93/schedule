@@ -152,12 +152,13 @@ func GetFavTeamKeyboardForUser(favTeams []model.FavTeam, user model.User) *model
 	keyboard := &models.InlineKeyboardMarkup{}
 
 	for _, favTeam := range favTeams {
-		keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{
-			{
+		AppendButtonToKeyboard(
+			keyboard,
+			models.InlineKeyboardButton{
 				Text:         fmt.Sprintf("%s %s", "❌", favTeam.Team.Name),
 				CallbackData: fmt.Sprintf("%s%d", CbdSettingsFavTeamRemove, favTeam.Team.ID),
 			},
-		})
+		)
 	}
 
 	buttonAdd := models.InlineKeyboardButton{
@@ -197,16 +198,21 @@ func GetCompetitionFixturesKeyboardForUser(user model.User, compView manager.Com
 			Text:         "ShowStandings",
 			CallbackData: fmt.Sprintf("%s%d", CbdShowStandings, compView.CompId),
 		}
-		keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{translateButtonForUser(user, standingsButton)})
+		AppendTranslatedButtonToKeyboard(
+			keyboard,
+			standingsButton,
+			user,
+		)
 	}
 
 	for _, fixture := range compView.Fixtures {
-		keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{
-			{
+		AppendButtonToKeyboard(
+			keyboard,
+			models.InlineKeyboardButton{
 				Text:         generateFixtureButtonText(user, fixture),
 				CallbackData: fmt.Sprintf("%s%d", CbdFixtureToggle, fixture.ID),
 			},
-		})
+		)
 	}
 
 	return keyboard

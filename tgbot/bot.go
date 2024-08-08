@@ -244,6 +244,7 @@ func settingsAlertHandler(ctx context.Context, b *bot.Bot, update *models.Update
 	for i, compView := range alertCompViews {
 		keyboard := template.GetCompetitionFixturesKeyboardForUser(*user, compView)
 		if i == len(alertCompViews)-1 {
+			fmt.Println("Adding refresh and settings buttons")
 			template.AppendTranslatedButtonToKeyboard(keyboard, template.ButtonSettings, *user)
 			template.AppendTranslatedButtonToKeyboard(keyboard, template.ButtonSchedule, *user)
 		}
