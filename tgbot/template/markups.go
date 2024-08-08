@@ -139,7 +139,7 @@ func RemoveFavTeamFromCachedKeyboard(favTeamId int, originalKeyboard models.Inli
 	for i, row := range keyboard.InlineKeyboard {
 		for j, button := range row {
 			if strings.HasSuffix(button.CallbackData, strconv.Itoa(favTeamId)) {
-				keyboard.InlineKeyboard[i] = remove(keyboard.InlineKeyboard[i], j)
+				keyboard.InlineKeyboard[i] = removeButtonFromBlock(keyboard.InlineKeyboard[i], j)
 				break
 			}
 		}
@@ -184,7 +184,7 @@ func AppendTranslatedButtonToKeyboard(keyboard *models.InlineKeyboardMarkup, but
 
 func AppendButtonToKeyboard(keyboard *models.InlineKeyboardMarkup, button models.InlineKeyboardButton) {
 	if len(keyboard.InlineKeyboard) > keyboardMaxButtonCount {
-		keyboard.InlineKeyboard[0] = remove(keyboard.InlineKeyboard[0], 0)
+		keyboard.InlineKeyboard = removeButtonBlock(keyboard.InlineKeyboard, 0)
 	}
 
 	keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []models.InlineKeyboardButton{button})
@@ -317,7 +317,7 @@ func GetLanguageSelectKeyboardForUser(user model.User) *models.InlineKeyboardMar
 
 	for i, button := range userKeyboard.InlineKeyboard[0] {
 		if strings.HasSuffix(button.CallbackData, user.Locale) {
-			userKeyboard.InlineKeyboard[0] = remove(userKeyboard.InlineKeyboard[0], i)
+			userKeyboard.InlineKeyboard[0] = removeButtonFromBlock(userKeyboard.InlineKeyboard[0], i)
 			break
 		}
 	}
@@ -335,9 +335,17 @@ func translateButtonForUser(user model.User, button models.InlineKeyboardButton)
 	return button
 }
 
-func remove(slice []models.InlineKeyboardButton, i int) []models.InlineKeyboardButton {
+func removeButtonFromBlock(slice []models.InlineKeyboardButton, i int) []models.InlineKeyboardButton {
 	slice[i] = slice[len(slice)-1]
 	slice[len(slice)-1] = models.InlineKeyboardButton{}
+	slice = slice[:len(slice)-1]
+
+	return slice
+}
+
+func removeButtonBlock(slice [][]models.InlineKeyboardButton, i int) [][]models.InlineKeyboardButton {
+	copy(slice[i:], slice[i+1:])
+	slice[len(slice)-1] = nil
 	slice = slice[:len(slice)-1]
 
 	return slice
