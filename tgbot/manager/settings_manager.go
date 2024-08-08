@@ -2,6 +2,7 @@ package manager
 
 import (
 	"fmt"
+	"schedule/db"
 	"schedule/model/bot"
 	"schedule/model/league"
 )
@@ -54,12 +55,12 @@ func ToggleUserCountrySettings(user *bot.User, countryID int) {
 		user.SetDisabledCountries(append(disabledCountryIds, countryID))
 	}
 
-	dbGorm.Save(user)
+	db.InitDbOrPanic().Save(user)
 }
 
 func GetCompetitionCountryID(competitionID int) uint {
 	var competition league.Competition
-	dbGorm.First(&competition, competitionID)
+	db.InitDbOrPanic().First(&competition, competitionID)
 	if competition.ID == 0 {
 		panic(fmt.Sprintf("Competition ID %d not found", competitionID))
 	}
@@ -74,14 +75,14 @@ func ToggleUserCompetitionSettings(user *bot.User, compID int) {
 		user.SetDisabledCompetitons(append(disabledCompIds, compID))
 	}
 
-	dbGorm.Save(user)
+	db.InitDbOrPanic().Save(user)
 }
 
 func GetUserCountrySettings(user *bot.User) []CountrySettings {
 	var countrySettings []CountrySettings
 
 	var countries []league.Country
-	dbGorm.Where("enabled = ?", 1).Find(&countries)
+	db.InitDbOrPanic().Where("enabled = ?", 1).Find(&countries)
 	for _, country := range countries {
 		countrySettings = append(countrySettings, CountrySettings{
 			ID:           country.ID,
@@ -97,9 +98,9 @@ func GetUserCountrySettings(user *bot.User) []CountrySettings {
 func GetUserEnabledCountries(user *bot.User) []league.Country {
 	var countries []league.Country
 	if len(user.GetDisabledCountries()) == 0 {
-		dbGorm.Where("enabled = ?", 1).Find(&countries)
+		db.InitDbOrPanic().Where("enabled = ?", 1).Find(&countries)
 	} else {
-		dbGorm.Where("enabled = ? and id NOT IN (?)", 1, user.GetDisabledCountries()).Find(&countries)
+		db.InitDbOrPanic().Where("enabled = ? and id NOT IN (?)", 1, user.GetDisabledCountries()).Find(&countries)
 	}
 
 	return countries
@@ -109,7 +110,7 @@ func GetUserCountryCompetitionSettings(user *bot.User, countryID uint) []Competi
 	var competitionSettings []CompetitionSettings
 
 	var competitions []league.Competition
-	dbGorm.Where("country_id = ? and enabled = 1", countryID).Find(&competitions)
+	db.InitDbOrPanic().Where("country_id = ? and enabled = 1", countryID).Find(&competitions)
 	for _, competition := range competitions {
 		competitionSettings = append(competitionSettings, CompetitionSettings{
 			ID:           competition.ID,

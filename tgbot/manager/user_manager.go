@@ -2,27 +2,25 @@ package manager
 
 import (
 	"context"
+	"schedule/db"
 	"schedule/util/transformer"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
-	"gorm.io/gorm"
 
 	model "schedule/model/bot"
 )
 
-var dbGorm *gorm.DB
 var defaultLocale string
 var supportedLocales []string
 
-func Init(db *gorm.DB, defaultLocaleArg string, supportedLocalesArg []string) {
-	dbGorm = db
+func Init(defaultLocaleArg string, supportedLocalesArg []string) {
 	defaultLocale = defaultLocaleArg
 	supportedLocales = supportedLocalesArg
 }
 
 func UpdateUserLocale(user *model.User, locale string) error {
-	result := dbGorm.Model(user).Update("locale", locale)
+	result := db.InitDbOrPanic().Model(user).Update("locale", locale)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -32,7 +30,7 @@ func UpdateUserLocale(user *model.User, locale string) error {
 }
 
 func UpdateUserTimezone(user *model.User, timezone string) error {
-	result := dbGorm.Model(user).Update("timezone", timezone)
+	result := db.InitDbOrPanic().Model(user).Update("timezone", timezone)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -42,7 +40,7 @@ func UpdateUserTimezone(user *model.User, timezone string) error {
 }
 
 func UpdateUserAlertOffset(user *model.User, offset int) error {
-	result := dbGorm.Model(user).Update("alert_offset", offset*60)
+	result := db.InitDbOrPanic().Model(user).Update("alert_offset", offset*60)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -93,7 +91,7 @@ func getUserByUpdate(update *models.Update) (*model.User, error) {
 		return user, nil
 	}
 
-	result := dbGorm.First(&user, userId)
+	result := db.InitDbOrPanic().First(&user, userId)
 
 	if result.Error != nil {
 		return user, result.Error
@@ -113,7 +111,7 @@ func createUser(ctx context.Context, b *bot.Bot, update *models.Update) (*model.
 	}
 
 	user := transformer.CreateUserFromChatMember(chatMember)
-	result := dbGorm.FirstOrCreate(&user, model.User{ID: user.ID})
+	result := db.InitDbOrPanic().FirstOrCreate(&user, model.User{ID: user.ID})
 	if result.Error != nil {
 		return nil, result.Error
 	}

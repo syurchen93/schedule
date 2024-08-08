@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 
-	"schedule/db"
 	"schedule/tgbot/manager"
 
 	"github.com/urfave/cli/v2"
@@ -17,8 +16,7 @@ func main() {
 		Name:  "create-fav-team-alerts",
 		Usage: "Create alerts for every user fav team fixture.",
 		Action: func(*cli.Context) error {
-			db.Init()
-			manager.Init(db.Db(), "en", []string{})
+			manager.Init("en", []string{})
 
 			createFavTeamAlerts()
 			return nil
