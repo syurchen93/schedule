@@ -350,6 +350,7 @@ func fixtureToggleHandler(ctx context.Context, b *bot.Bot, update *models.Update
 }
 
 func scheduleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	var preserveLine []int
 	answerCallbackQuery(ctx, b, update)
 
 	user := manager.GetOrCreateUser(ctx, b, update)
@@ -359,8 +360,11 @@ func scheduleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	for i, compView := range competitions {
 		replyMarkup := template.GetCompetitionFixturesKeyboardForUser(*user, compView)
 		if i == len(competitions)-1 {
-			template.AppendTranslatedButtonToKeyboard(replyMarkup, template.ButtonSettings, *user, 0)
-			template.AppendTranslatedButtonToKeyboard(replyMarkup, template.ButtonRefreshSchedule, *user, 0)
+			if (compView.Standings != nil) && (len(compView.Standings) > 0) {
+				preserveLine = []int{0}
+			}
+			template.AppendTranslatedButtonToKeyboard(replyMarkup, template.ButtonSettings, *user, preserveLine...)
+			template.AppendTranslatedButtonToKeyboard(replyMarkup, template.ButtonRefreshSchedule, *user, preserveLine...)
 		}
 		msg, err := b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:              update.CallbackQuery.Message.Message.Chat.ID,
