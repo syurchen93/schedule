@@ -30,7 +30,8 @@ func main() {
 		Usage: "Fetch and persist missing team data.",
 		Action: func(*cli.Context) error {
 			apiClient = client.NewClient(util.GetEnv("API_FOOTBALL_KEY"), client.RateLimiterSettings{})
-			dbGorm = db.InitDbOrPanic()
+			db.Init()
+			dbGorm = db.Db()
 
 			fetchAndPersistTeamsWithMissingData()
 			return nil

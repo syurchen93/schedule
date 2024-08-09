@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"schedule/db"
 	model "schedule/model/bot"
 	"schedule/util"
 
@@ -24,7 +23,7 @@ func GetAndFireAlerts(ctx context.Context, b *bot.Bot) bool {
 func GetAlertCompetitionViewsForUser(userId int) []CompetitionView {
 	var alerts []model.Alert
 
-	db.InitDbOrPanic().
+	dbGorm.
 		Joins("join fixture on alert.fixture_id = fixture.id").
 		Preload("Fixture").
 		Preload("User").
@@ -54,14 +53,14 @@ func fireAlert(ctx context.Context, b *bot.Bot, alert model.Alert) {
 	})
 
 	if success != nil && err == nil {
-		db.InitDbOrPanic().Model(&alert).Update("is_fired", 1)
+		dbGorm.Model(&alert).Update("is_fired", 1)
 	}
 }
 
 func getAlertsToFire() []model.Alert {
 	var alerts []model.Alert
 
-	db.InitDbOrPanic().
+	dbGorm.
 		Preload("User").
 		Joins("join fixture on alert.fixture_id = fixture.id").
 		Where("is_fired = ? AND DATE_ADD(fixture.date, INTERVAL - alert.time_before SECOND) <= NOW()", 0).
@@ -80,9 +79,7 @@ func createOrDeleteAlertForFixture(user *model.User, fixtureId int) {
 		FixtureID:  uint(fixtureId),
 		TimeBefore: user.AlertOffset,
 	}
-	dbGorm := db.InitDbOrPanic()
 	dbGorm.Where("user_id = ? AND fixture_id = ?", user.ID, fixtureId).First(&alert)
-
 	if alert.ID == 0 {
 		dbGorm.Create(&alert)
 	} else {

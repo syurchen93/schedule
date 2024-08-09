@@ -6,17 +6,15 @@ import (
 	"github.com/syurchen93/api-football-client/response/leagues"
 
 	"fmt"
+	"gorm.io/gorm"
 	"log"
 	"os"
 
-	"gorm.io/gorm"
-
+	"github.com/urfave/cli/v2"
 	"schedule/db"
 	"schedule/tgbot/manager"
 	"schedule/util"
 	"schedule/util/transformer"
-
-	"github.com/urfave/cli/v2"
 )
 
 var apiClient *client.Client
@@ -28,7 +26,8 @@ func main() {
 		Usage: "Fetch and persist countries from API Football",
 		Action: func(*cli.Context) error {
 			apiClient = client.NewClient(util.GetEnv("API_FOOTBALL_KEY"), client.RateLimiterSettings{})
-			dbGorm = db.InitDbOrPanic()
+			db.Init()
+			dbGorm = db.Db()
 
 			fetchAndPersistCountries()
 			return nil

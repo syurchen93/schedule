@@ -8,10 +8,13 @@ import (
 	"strconv"
 	"time"
 
+	"gorm.io/gorm"
+
 	timer "atomicgo.dev/schedule"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 
+	"schedule/db"
 	"schedule/tgbot/manager"
 	"schedule/tgbot/template"
 	"schedule/util"
@@ -19,6 +22,7 @@ import (
 
 const AlertIntervalSeconds = 10
 
+var dbGorm *gorm.DB
 var defaultLocale = "en"
 var supportedLocales = []string{"en", "ru", "de"}
 
@@ -33,8 +37,11 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
+	db.Init()
+	dbGorm = db.Db()
+
 	util.InitTranslator("tgbot/translation", supportedLocales)
-	manager.Init(defaultLocale, supportedLocales)
+	manager.Init(dbGorm, defaultLocale, supportedLocales)
 	util.InitCache(time.Hour, 10_000)
 	manager.InitImageGenerator("tgbot/images/")
 	util.InitGoogleMapsClient(ctx, util.GetEnv("GOOGLE_MAPS_API_KEY"))

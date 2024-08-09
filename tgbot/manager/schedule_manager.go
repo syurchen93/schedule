@@ -2,7 +2,6 @@ package manager
 
 import (
 	"fmt"
-	"schedule/db"
 	"schedule/model/bot"
 	"schedule/model/league"
 	"sort"
@@ -123,9 +122,7 @@ func GetToggleFixtureViewByFixtureId(user *bot.User, fixtureId int) FixtureView 
 	var fixture league.Fixture
 	var userFavTeamIDs []int
 
-	dbGorm := db.InitDbOrPanic()
-
-	db.InitDbOrPanic().
+	dbGorm.
 		Preload("HomeTeam").
 		Preload("AwayTeam").
 		Preload("Competition").
@@ -209,7 +206,7 @@ func createFixtureView(fixture league.Fixture, user *bot.User) FixtureView {
 
 func fetchUpToDateCompetitionStandings(competitionId uint) []league.Standing {
 	var standings []league.Standing
-	db.InitDbOrPanic().
+	dbGorm.
 		Table("standing as s").
 		Joins("join competition c on c.id = s.competition_id and c.current_season = s.season").
 		Joins("join team on team.id = s.team_id").
@@ -252,7 +249,7 @@ func getHydratedFixturesForUser(user *bot.User) []league.Fixture {
 		AwayIsUserFav bool `gorm:"column:away_is_user_fav"`
 	}
 
-	query := db.InitDbOrPanic().Table("fixture").Joins("left join competition on competition.id = fixture.competition_id").
+	query := dbGorm.Table("fixture").Joins("left join competition on competition.id = fixture.competition_id").
 		Joins("left join country on country.id = competition.country_id").
 		Joins("left join alert on alert.fixture_id = fixture.id AND alert.user_id = ?", user.ID).
 		Joins("left join fav_team as home_fav on home_fav.team_id = fixture.home_team_id AND home_fav.user_id = ?", user.ID).

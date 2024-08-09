@@ -14,15 +14,7 @@ import (
 var db *gorm.DB
 var err error
 
-func InitDbOrPanic() *gorm.DB {
-	db, err = InitDB()
-	if err != nil {
-		panic(err)
-	}
-	return db
-}
-
-func InitDB() (*gorm.DB, error) {
+func Init() {
 
 	dsn := util.GetEnv("DB_DSN")
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
@@ -32,7 +24,7 @@ func InitDB() (*gorm.DB, error) {
 	})
 
 	if err != nil {
-		return nil, err
+		panic("DB Connection Error")
 	}
 
 	err = db.AutoMigrate(
@@ -49,8 +41,10 @@ func InitDB() (*gorm.DB, error) {
 		&bot.UserShare{},
 	)
 	if err != nil {
-		return nil, err
+		panic("DB Migration Error")
 	}
+}
 
-	return db, nil
+func Db() *gorm.DB {
+	return db
 }

@@ -1,7 +1,6 @@
 package manager
 
 import (
-	"schedule/db"
 	"schedule/model"
 	"schedule/model/bot"
 	"schedule/model/league"
@@ -9,20 +8,20 @@ import (
 
 func GetFavTeamsForUser(userId int) []bot.FavTeam {
 	var favTeams []bot.FavTeam
-	db.InitDbOrPanic().Where("user_id = ?", userId).
+	dbGorm.Where("user_id = ?", userId).
 		Preload("Team").
 		Find(&favTeams)
 	return favTeams
 }
 
 func RemoveFavTeamForUser(userId int, teamId int) {
-	db.InitDbOrPanic().Unscoped().Where("user_id = ? AND team_id = ?", userId, teamId).Delete(&bot.FavTeam{})
+	dbGorm.Unscoped().Where("user_id = ? AND team_id = ?", userId, teamId).Delete(&bot.FavTeam{})
 	RemoveAlertsForUserFavTeam(&bot.User{ID: userId}, teamId)
 }
 
 func FindTeamByUserInput(userInput string) *model.Team {
 	var favTeam model.Team
-	db.InitDbOrPanic().
+	dbGorm.
 		Where("name LIKE ?", "%"+userInput+"%").
 		First(&favTeam)
 
@@ -33,7 +32,7 @@ func FindTeamByUserInput(userInput string) *model.Team {
 }
 
 func AddFavTeamForUser(user *bot.User, teamId int) {
-	db.InitDbOrPanic().Create(&bot.FavTeam{
+	dbGorm.Create(&bot.FavTeam{
 		UserID: user.ID,
 		TeamID: teamId,
 	})
@@ -42,7 +41,6 @@ func AddFavTeamForUser(user *bot.User, teamId int) {
 
 func CreateAlertsForUserFavTeamFixtures(user *bot.User) {
 	var favTeams []bot.FavTeam
-	dbGorm := db.InitDbOrPanic()
 	dbGorm.Where("user_id = ?", user.ID).Find(&favTeams)
 
 	for _, favTeam := range favTeams {
@@ -65,7 +63,6 @@ func CreateAlertsForUserFavTeamFixtures(user *bot.User) {
 
 func RemoveAlertsForUserFavTeam(user *bot.User, teamId int) {
 	var alerts []bot.Alert
-	dbGorm := db.InitDbOrPanic()
 	dbGorm.
 		Where("user_id = ? AND is_fav_team_created = 1", user.ID).
 		Joins("join fixture on alert.fixture_id = fixture.id").
@@ -79,7 +76,7 @@ func RemoveAlertsForUserFavTeam(user *bot.User, teamId int) {
 
 func GetAllUsersWithFavTeams() []bot.User {
 	var users []bot.User
-	db.InitDbOrPanic().
+	dbGorm.
 		Joins("join fav_team on fav_team.user_id = user.id").
 		Where("fav_team.id IS NOT NULL").
 		Find(&users)

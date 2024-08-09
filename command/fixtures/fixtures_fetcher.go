@@ -46,7 +46,8 @@ func main() {
 			}
 
 			apiClient = client.NewClient(util.GetEnv("API_FOOTBALL_KEY"), client.RateLimiterSettings{})
-			dbGorm = db.InitDbOrPanic()
+			db.Init()
+			dbGorm = db.Db()
 
 			fetchAndPersistFixtures(daysBefore, daysAfter)
 			return nil
