@@ -401,6 +401,8 @@ func settingsCompetitionToggleHandler(ctx context.Context, b *bot.Bot, update *m
 	if nil != err {
 		panic(err)
 	}
+
+	manager.ClearUserFromCache(user.ID)
 	checkIfSuccessfulMessageEdit(ctx, b, update, success)
 }
 
@@ -465,6 +467,7 @@ func settingsCountryToggleHandler(ctx context.Context, b *bot.Bot, update *model
 	if nil != err {
 		panic(err)
 	}
+	manager.ClearUserFromCache(user.ID)
 	checkIfSuccessfulMessageEdit(ctx, b, update, success)
 }
 
@@ -515,6 +518,7 @@ func setLocaleHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if nil != err {
 		panic(err)
 	}
+	manager.ClearUserFromCache(user.ID)
 
 	_, err = b.SendMessage(ctx, &bot.SendMessageParams{
 		DisableNotification: true,
