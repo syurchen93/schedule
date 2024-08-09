@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"context"
 	"fmt"
 	"schedule/model/bot"
 	"schedule/model/league"
@@ -249,6 +250,8 @@ func getHydratedFixturesForUser(user *bot.User) []league.Fixture {
 		AwayIsUserFav bool `gorm:"column:away_is_user_fav"`
 	}
 
+	ctx := context.Background()
+
 	query := dbGorm.Table("fixture").Joins("left join competition on competition.id = fixture.competition_id").
 		Joins("left join country on country.id = competition.country_id").
 		Joins("left join alert on alert.fixture_id = fixture.id AND alert.user_id = ?", user.ID).
@@ -271,7 +274,7 @@ func getHydratedFixturesForUser(user *bot.User) []league.Fixture {
 		query = query.Not("competition_id", user.GetDisabledCompetitions())
 	}
 
-	query.Find(&results)
+	query.WithContext(ctx).Find(&results)
 
 	for _, result := range results {
 		result.HomeTeam.IsUserFav = result.HomeIsUserFav
