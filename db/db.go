@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -14,7 +15,7 @@ import (
 var db *gorm.DB
 var err error
 
-func Init() {
+func Init(ctx ...context.Context) {
 
 	dsn := util.GetEnv("DB_DSN")
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
@@ -25,6 +26,10 @@ func Init() {
 
 	if err != nil {
 		panic("DB Connection Error")
+	}
+
+	if len(ctx) > 0 {
+		db = db.WithContext(ctx[0])
 	}
 
 	err = db.AutoMigrate(

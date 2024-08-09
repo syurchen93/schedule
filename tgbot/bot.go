@@ -37,7 +37,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	db.Init()
+	db.Init(ctx)
 	dbGorm = db.Db()
 
 	util.InitTranslator("tgbot/translation", supportedLocales)
