@@ -74,15 +74,20 @@ func getAlertsToFire() []model.Alert {
 }
 
 func createOrDeleteAlertForFixture(user *model.User, fixtureId int) {
-	alert := model.Alert{
-		UserID:     uint(user.ID),
-		FixtureID:  uint(fixtureId),
-		TimeBefore: user.AlertOffset,
-	}
-	dbGorm.Where("user_id = ? AND fixture_id = ?", user.ID, fixtureId).First(&alert)
-	if alert.ID == 0 {
+	var existingAlert model.Alert
+	result := dbGorm.Where("user_id = ? AND fixture_id = ? AND time_before = ?", 
+		user.ID, fixtureId, user.AlertOffset).First(&existingAlert)
+	
+	if result.Error != nil {
+		// Alert doesn't exist, create it
+		alert := model.Alert{
+			UserID:     uint(user.ID),
+			FixtureID:  uint(fixtureId),
+			TimeBefore: user.AlertOffset,
+		}
 		dbGorm.Create(&alert)
 	} else {
-		dbGorm.Delete(&alert)
+		// Alert exists, delete it
+		dbGorm.Delete(&existingAlert)
 	}
 }

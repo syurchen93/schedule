@@ -56,7 +56,17 @@ func CreateAlertsForUserFavTeamFixtures(user *bot.User) {
 				TimeBefore:       user.AlertOffset,
 				IsFavTeamCreated: true,
 			}
-			dbGorm.Create(&alert)
+			
+			// Use FirstOrCreate to handle duplicates gracefully
+			var existingAlert bot.Alert
+			result := dbGorm.Where("user_id = ? AND fixture_id = ? AND time_before = ?", 
+				alert.UserID, alert.FixtureID, alert.TimeBefore).
+				FirstOrCreate(&existingAlert, alert)
+			
+			// Update IsFavTeamCreated flag if alert already existed
+			if result.RowsAffected == 0 && !existingAlert.IsFavTeamCreated {
+				dbGorm.Model(&existingAlert).Update("is_fav_team_created", true)
+			}
 		}
 	}
 }
