@@ -75,9 +75,9 @@ func getAlertsToFire() []model.Alert {
 
 func createOrDeleteAlertForFixture(user *model.User, fixtureId int) {
 	var existingAlert model.Alert
-	result := dbGorm.Where("user_id = ? AND fixture_id = ? AND time_before = ?", 
+	result := dbGorm.Where("user_id = ? AND fixture_id = ? AND time_before = ?",
 		user.ID, fixtureId, user.AlertOffset).First(&existingAlert)
-	
+
 	if result.Error != nil {
 		// Alert doesn't exist, create it
 		alert := model.Alert{
